@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Тренировочный дашборд</title>
+<title>Fitness Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -200,62 +200,62 @@
 
 <div class="header">
   <h1>Тренировочный дашборд</h1>
-  <span class="period">Июль 2023 — Июнь 2026</span>
+  <span class="period">July 2023 — June 2026</span>
 </div>
 
 <div class="note-banner">
-  <strong>Примечание по годам:</strong>
-  Первые записи без года → <strong>2023</strong> (июль–декабрь).
-  Январь–август 2024; Тирана с 10.08.2024.
-  Записи "7.12", "10.12", "13.12" после Нового года = <strong>январь 2025</strong> (ошибка месяца).
-  14.12.2025 и 02.02.2026 — явно указаны.
+  <strong>Year notes:</strong>
+  Early entries without a year → <strong>2023</strong> (July–December).
+  January–August 2024; Tirana from 10.08.2024.
+  Entries "7.12", "10.12", "13.12" after New Year = <strong>January 2025</strong> (month error).
+  14.12.2025 and 02.02.2026 — explicitly stated.
 </div>
 
 <!-- Summary stats -->
 <div class="stats-grid">
   <div class="stat-card highlight">
-    <div class="label">Всего тренировок</div>
+    <div class="label">Total workouts</div>
     <div class="value">~164</div>
-    <div class="sub">за 3 года</div>
+    <div class="sub">over 3 years</div>
   </div>
   <div class="stat-card">
-    <div class="label">Активнее всего</div>
+    <div class="label">Most active month</div>
     <div class="value">Май '25</div>
-    <div class="sub">11 сессий за месяц</div>
+    <div class="sub">11 sessions</div>
   </div>
   <div class="stat-card pr">
-    <div class="label">Рекорд жима гантелей</div>
+    <div class="label">DB Bench PR</div>
     <div class="value">32.5 кг</div>
-    <div class="sub">32.5×4 — март 2026</div>
+    <div class="sub">32.5×4 — Mar 2026</div>
   </div>
   <div class="stat-card pr">
-    <div class="label">Рекорд приседа</div>
+    <div class="label">Squat PR</div>
     <div class="value">125 кг</div>
-    <div class="sub">125×2 — февраль 2026</div>
+    <div class="sub">125×2 — Feb 2026</div>
   </div>
   <div class="stat-card pr">
-    <div class="label">Рекорд становой</div>
+    <div class="label">Deadlift PR</div>
     <div class="value">90 кг</div>
-    <div class="sub">90×8 — март 2024</div>
+    <div class="sub">90×8 — Mar 2024</div>
   </div>
   <div class="stat-card">
-    <div class="label">Статус</div>
+    <div class="label">Status</div>
     <div class="value" style="font-size:18px;padding-top:4px;">Rebuild</div>
-    <div class="sub">Июнь 2026</div>
+    <div class="sub">June 2026</div>
   </div>
 </div>
 
 <!-- Exercise progress selector -->
 <div class="exercise-card">
   <div class="exercise-header">
-    <h2>Прогресс по упражнению</h2>
-    <span class="ex-info" id="exInfo">топ вес за тренировку, кг</span>
+    <h2>Exercise progress</h2>
+    <span class="ex-info" id="exInfo">peak weight per session, kg</span>
   </div>
 
   <div class="ex-buttons" id="exButtons">
-    <button class="ex-btn active" data-ex="dumbbell_bench">Жим гантелей</button>
-    <button class="ex-btn" data-ex="squat">Присед</button>
-    <button class="ex-btn" data-ex="deadlift">Становая</button>
+    <button class="ex-btn active" data-ex="dumbbell_bench">DB Bench</button>
+    <button class="ex-btn" data-ex="squat">Squat</button>
+    <button class="ex-btn" data-ex="deadlift">Deadlift</button>
   </div>
 
   <div class="chart-container">
@@ -267,7 +267,7 @@
 
 <!-- Frequency -->
 <div class="chart-card">
-  <h2>Частота тренировок по месяцам</h2>
+  <h2>Monthly workout frequency</h2>
   <div class="chart-container medium">
     <canvas id="freqChart"></canvas>
   </div>
@@ -277,26 +277,26 @@
 <!-- Garmin Recovery -->
 <div class="garmin-card">
   <div class="garmin-header">
-    <h2>Garmin — состояние и восстановление</h2>
+    <h2>Garmin — health & recovery</h2>
   </div>
   <div class="garmin-buttons" id="garminButtons">
-    <button class="garmin-btn active" data-gm="resting_hr">Пульс покоя</button>
-    <button class="garmin-btn" data-gm="steps">Шаги</button>
+    <button class="garmin-btn active" data-gm="resting_hr">Resting HR</button>
+    <button class="garmin-btn" data-gm="steps">Steps</button>
     <button class="garmin-btn" data-gm="body_battery_morning">Body Battery</button>
-    <button class="garmin-btn" data-gm="stress_avg">Стресс</button>
-    <button class="garmin-btn" data-gm="sleep_score">Оценка сна</button>
-    <button class="garmin-btn" data-gm="sleep_hours">Часов сна</button>
-    <button class="garmin-btn" data-gm="sleep_start_h">Время засыпания</button>
+    <button class="garmin-btn" data-gm="stress_avg">Stress</button>
+    <button class="garmin-btn" data-gm="sleep_score">Sleep score</button>
+    <button class="garmin-btn" data-gm="sleep_hours">Sleep hours</button>
+    <button class="garmin-btn" data-gm="sleep_start_h">Bedtime</button>
     <button class="garmin-btn" data-gm="vo2max">VO₂ max</button>
-    <button class="garmin-btn" data-gm="hrv_weekly_avg">HRV (мар'26+)</button>
+    <button class="garmin-btn" data-gm="hrv_weekly_avg">HRV (Mar'26+)</button>
   </div>
   <div class="period-buttons" id="periodButtons">
-    <button class="period-btn active" data-period="day">По дням</button>
-    <button class="period-btn" data-period="week">По неделям</button>
-    <button class="period-btn" data-period="month">По месяцам</button>
+    <button class="period-btn active" data-period="day">Daily</button>
+    <button class="period-btn" data-period="week">Weekly</button>
+    <button class="period-btn" data-period="month">Monthly</button>
   </div>
   <div class="garmin-desc" id="garminDesc"></div>
-  <div id="garminLoading" style="display:none;text-align:center;padding:20px;color:#8b949e;font-size:13px;">Загружаем данные Garmin…</div>
+  <div id="garminLoading" style="display:none;text-align:center;padding:20px;color:#8b949e;font-size:13px;">Loading Garmin data…</div>
   <div class="chart-container" style="height:260px;">
     <canvas id="garminChart"></canvas>
   </div>
@@ -306,54 +306,54 @@
 <!-- Skills -->
 <div class="milestones-grid">
   <div class="skill-card">
-    <h2>Прогресс: Выходы (muscle-ups)</h2>
+    <h2>Skill: Muscle-ups</h2>
     <ul class="skill-timeline">
-      <li><span class="date">Июл 2023</span><span class="text">Старт — синяя резинка ×10</span><span class="badge badge-gray">нач.</span></li>
-      <li><span class="date">Окт 2023</span><span class="text">2 синих резинки; подтягивания ×17 чистых</span><span class="badge badge-gray">рост</span></li>
-      <li><span class="date">Ноя 2023</span><span class="text">Фиолетовая резинка: ×5,5,5,4</span><span class="badge badge-gray">рост</span></li>
-      <li><span class="date">Дек 2023</span><span class="text">БЕЗ резинки ×2 — первый раз!</span><span class="badge badge-green">✓ без резинок</span></li>
-      <li><span class="date">Янв 2024</span><span class="text">Зелёная ×10, фиол ×8, чёрная ×6, красная ×4</span><span class="badge badge-blue">стабильно</span></li>
-      <li><span class="date">Апр 2024</span><span class="text">Чёрная ×15, синяя ×7, фиол ×6, без ×1</span><span class="badge badge-blue">варьирует</span></li>
-      <li><span class="date">Дек 2024</span><span class="text">Тренировка в Тиране — поддержание</span><span class="badge badge-gray">поддерж.</span></li>
+      <li><span class="date">Jul 2023</span><span class="text">Start — blue band ×10</span><span class="badge badge-gray">beginner</span></li>
+      <li><span class="date">Oct 2023</span><span class="text">2 blue bands; pull-ups ×17 clean</span><span class="badge badge-gray">progress</span></li>
+      <li><span class="date">Nov 2023</span><span class="text">Purple band: ×5,5,5,4</span><span class="badge badge-gray">рост</span></li>
+      <li><span class="date">Dec 2023</span><span class="text">No band ×2 — first time!</span><span class="badge badge-green">✓ no band</span></li>
+      <li><span class="date">Jan 2024</span><span class="text">Green ×10, purple ×8, black ×6, red ×4</span><span class="badge badge-blue">solid</span></li>
+      <li><span class="date">Apr 2024</span><span class="text">Black ×15, blue ×7, purple ×6, no band ×1</span><span class="badge badge-blue">varies</span></li>
+      <li><span class="date">Dec 2024</span><span class="text">Session in Tirana — maintenance</span><span class="badge badge-gray">maintain</span></li>
     </ul>
   </div>
   <div class="skill-card">
-    <h2>Прогресс: Стойка и HSPU</h2>
+    <h2>Skill: Handstand & HSPU</h2>
     <ul class="skill-timeline">
-      <li><span class="date">Ноя 2023</span><span class="text">Стойка ~6 сек, отжимания от стены ×6×4</span><span class="badge badge-gray">старт</span></li>
-      <li><span class="date">Авг 2024</span><span class="text">Стойка 15 секунд — рекорд! (Тирана)</span><span class="badge badge-orange">рекорд 15с</span></li>
-      <li><span class="date">Ноя 2024</span><span class="text">Стойка 10с+; негативные попытки ×7 (Тирана)</span><span class="badge badge-gray">тренировка</span></li>
-      <li><span class="date">Фев 2025</span><span class="text">Wall HSPU ×8,7,7 + 4 попытки полного!</span><span class="badge badge-blue">попытки</span></li>
-      <li><span class="date">Мар 2025</span><span class="text">Wall HSPU 3×8 + негативные 3×3</span><span class="badge badge-blue">регулярно</span></li>
-      <li><span class="date">Апр 2025</span><span class="text">2 полных HSPU! 5+ тренировок за месяц</span><span class="badge badge-green">✓ выполнено!</span></li>
-      <li><span class="date">Май 2025+</span><span class="text">HSPU как часть тренировок</span><span class="badge badge-green">навык</span></li>
+      <li><span class="date">Nov 2023</span><span class="text">Handstand ~6 sec, wall push-ups ×6×4</span><span class="badge badge-gray">start</span></li>
+      <li><span class="date">Aug 2024</span><span class="text">Handstand 15 sec — PR! (Tirana)</span><span class="badge badge-orange">PR 15s</span></li>
+      <li><span class="date">Nov 2024</span><span class="text">HS 10s+; negative attempts ×7 (Tirana)</span><span class="badge badge-gray">training</span></li>
+      <li><span class="date">Feb 2025</span><span class="text">Wall HSPU ×8,7,7 + 4 full attempts!</span><span class="badge badge-blue">attempts</span></li>
+      <li><span class="date">Mar 2025</span><span class="text">Wall HSPU 3×8 + negatives 3×3</span><span class="badge badge-blue">regular</span></li>
+      <li><span class="date">Apr 2025</span><span class="text">2 full HSPU! 5+ sessions that month</span><span class="badge badge-green">✓ done!</span></li>
+      <li><span class="date">May 2025+</span><span class="text">HSPU as part of sessions</span><span class="badge badge-green">skill</span></li>
     </ul>
   </div>
 </div>
 
 <!-- Events -->
 <div class="events-card">
-  <h2>Ключевые события</h2>
+  <h2>Key milestones</h2>
   <ul class="events-list">
-    <li><span class="event-dot dot-blue"></span><span class="event-date">Июль 2023</span><span class="event-text"><strong>Начало записей.</strong> Присед 95×8, жим 70×5.</span></li>
-    <li><span class="event-dot dot-orange"></span><span class="event-date">Окт 2023</span><span class="event-text"><strong>Присед 110 кг.</strong> Жим 75×5. Подтягивания ×17.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Дек 2023</span><span class="event-text"><strong>13 тренировок — рекорд месяца.</strong> Первые выходы без резинки ×2.</span></li>
-    <li><span class="event-dot dot-orange"></span><span class="event-date">Янв 2024</span><span class="event-text"><strong>Жим 85×1</strong> — первый выход за 80 кг.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Фев 2024</span><span class="event-text">Перерыв 2 нед. → откат до 70–75 кг на жиме.</span></li>
-    <li><span class="event-dot dot-blue"></span><span class="event-date">Авг 2024</span><span class="event-text"><strong>Переезд в Тирану.</strong> Тренировки продолжаются, но легче.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Дек 2024</span><span class="event-text">Банско на НГ, травма пальца → небольшой перерыв.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Фев 2025</span><span class="event-text">Форма вернулась: <strong>жим 85×1</strong> за ~2 месяца восстановления.</span></li>
-    <li><span class="event-dot dot-red"></span><span class="event-date">Апр 2025</span><span class="event-text"><strong>РЕКОРД жим 90×1.5 кг!</strong> Первые полноценные HSPU ×2.</span></li>
-    <li><span class="event-dot dot-blue"></span><span class="event-date">Май 2025</span><span class="event-text"><strong>Программа жима</strong> (68.86 → 85×2×6). 11 сессий за месяц.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Июл 2025</span><span class="event-text"><strong>Программа завершена:</strong> 85×2×6 — цель достигнута.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Авг–Ноя 2025</span><span class="event-text">Долгий перерыв ~4 месяца. Возврат в декабре.</span></li>
-    <li><span class="event-dot dot-red"></span><span class="event-date">Фев 2026</span><span class="event-text"><strong>РЕКОРД ПРИСЕД 125×2!</strong> Жим 85×1 восстановлен быстро.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Мар–Май 2026</span><span class="event-text">Перерыв ~2 месяца. Последняя запись 06.06.2026.</span></li>
+    <li><span class="event-dot dot-blue"></span><span class="event-date">July 2023</span><span class="event-text"><strong>First records.</strong> Squat 95×8, bench 70×5.</span></li>
+    <li><span class="event-dot dot-orange"></span><span class="event-date">Oct 2023</span><span class="event-text"><strong>Squat 110 kg.</strong> Bench 75×5. Pull-ups ×17.</span></li>
+    <li><span class="event-dot dot-green"></span><span class="event-date">Dec 2023</span><span class="event-text"><strong>13 sessions — monthly record.</strong> First muscle-ups without band ×2.</span></li>
+    <li><span class="event-dot dot-orange"></span><span class="event-date">Jan 2024</span><span class="event-text"><strong>Bench 85×1</strong> — first time over 80 kg.</span></li>
+    <li><span class="event-dot dot-yellow"></span><span class="event-date">Feb 2024</span><span class="event-text">2-week break → regressed to 70–75 kg on bench.</span></li>
+    <li><span class="event-dot dot-blue"></span><span class="event-date">Aug 2024</span><span class="event-text"><strong>Moved to Tirana.</strong> Training continues, lighter loads.</span></li>
+    <li><span class="event-dot dot-yellow"></span><span class="event-date">Dec 2024</span><span class="event-text">Bansko for New Year, finger injury → short break.</span></li>
+    <li><span class="event-dot dot-green"></span><span class="event-date">Feb 2025</span><span class="event-text">Back in shape: <strong>bench 85×1</strong> in ~2 months.</span></li>
+    <li><span class="event-dot dot-red"></span><span class="event-date">Apr 2025</span><span class="event-text"><strong>BENCH PR 90 kg!</strong> First full HSPU ×2.</span></li>
+    <li><span class="event-dot dot-blue"></span><span class="event-date">May 2025</span><span class="event-text"><strong>Bench program</strong> (68.86 → 85×2×6). 11 sessions.</span></li>
+    <li><span class="event-dot dot-green"></span><span class="event-date">Jul 2025</span><span class="event-text"><strong>Program completed:</strong> 85×2×6 goal achieved.</span></li>
+    <li><span class="event-dot dot-yellow"></span><span class="event-date">Aug–Nov 2025</span><span class="event-text">Long break ~4 months. Back in December.</span></li>
+    <li><span class="event-dot dot-red"></span><span class="event-date">Feb 2026</span><span class="event-text"><strong>SQUAT PR 125×2!</strong> Bench 85×1 recovered fast.</span></li>
+    <li><span class="event-dot dot-yellow"></span><span class="event-date">Mar–May 2026</span><span class="event-text">Break ~2 months. Last entry 06.06.2026.</span></li>
   </ul>
 </div>
 
 <footer>
-  Данные из personal_exercises.md · Годы восстановлены логически (2023–2026) · Июнь 2026
+  Data from personal_exercises.md · Years inferred logically (2023–2026) · June 2026
 </footer>
 
 <script>
@@ -361,25 +361,25 @@
 
 const EXERCISES = {
   bench: {
-    name: 'Жим лёжа (штанга)',
+    name: 'Barbell bench press',
     color: '#58a6ff',
     bgColor: 'rgba(88,166,255,0.08)',
-    info: 'Топ вес штанги за тренировку (кг). Рекорд: 90 кг (апр 2025). Оранжевые точки — 85+ кг.',
+    info: 'Peak barbell weight per session (kg). PR: 90 kg (Apr 2025). Orange dots — 85+ kg.',
     yMin: 25, yMax: 100,
     data: [
-      { x:'2023-07-10', y:70,   note:'Начало записей' },
+      { x:'2023-07-10', y:70,   note:'Start of records' },
       { x:'2023-10-16', y:75,   note:'' },
       { x:'2023-11-14', y:75,   note:'' },
-      { x:'2023-12-13', y:80,   note:'85 не вышло' },
-      { x:'2024-01-12', y:85,   note:'85×1 — первый раз!' },
-      { x:'2024-02-17', y:75,   note:'После 2 нед. перерыва' },
+      { x:'2023-12-13', y:80,   note:'85 failed' },
+      { x:'2024-01-12', y:85,   note:'85×1 — first time!' },
+      { x:'2024-02-17', y:75,   note:'After 2-week break' },
       { x:'2024-02-22', y:80,   note:'' },
       { x:'2024-03-10', y:70,   note:'' },
       { x:'2024-03-15', y:70,   note:'' },
       { x:'2024-04-22', y:70,   note:'' },
       { x:'2024-05-22', y:75,   note:'' },
       { x:'2024-06-07', y:80,   note:'85 не вышло' },
-      { x:'2024-11-15', y:50,   note:'Тирана — лёгкая' },
+      { x:'2024-11-15', y:50,   note:'Tirana — light' },
       { x:'2024-12-02', y:60,   note:'' },
       { x:'2024-12-09', y:70,   note:'' },
       { x:'2025-01-13', y:65,   note:'' },
@@ -391,45 +391,45 @@ const EXERCISES = {
       { x:'2025-03-27', y:70,   note:'' },
       { x:'2025-04-03', y:70,   note:'' },
       { x:'2025-04-16', y:90,   note:'🔥 РЕКОРД 90 кг' },
-      { x:'2025-05-02', y:68,   note:'Старт программы' },
+      { x:'2025-05-02', y:68,   note:'Program start' },
       { x:'2025-05-06', y:75,   note:'' },
       { x:'2025-05-12', y:80,   note:'' },
       { x:'2025-05-21', y:82.5, note:'82.5×2×6' },
       { x:'2025-06-07', y:77.5, note:'' },
-      { x:'2025-07-01', y:85,   note:'85×2×6 ✓ цель программы' },
-      { x:'2025-12-14', y:50,   note:'После долгого перерыва' },
+      { x:'2025-07-01', y:85,   note:'85×2×6 ✓ program goal' },
+      { x:'2025-12-14', y:50,   note:'After long break' },
       { x:'2026-02-02', y:50,   note:'' },
       { x:'2026-02-12', y:85,   note:'85×1 comeback!' },
       { x:'2026-02-25', y:50,   note:'' },
-      { x:'2026-06-06', y:30,   note:'После перерыва в мес.' },
+      { x:'2026-06-06', y:30,   note:'After ~1 month break' },
     ],
   },
 
   dumbbell_bench: {
-    name: 'Жим гантели (1 рука)',
+    name: 'DB bench (1 arm)',
     color: '#ffa657',
     bgColor: 'rgba(255,166,87,0.08)',
-    info: 'Максимальный вес гантели за тренировку (кг на одну руку). Рекорд: 32.5 кг (мар 2026). Оранжевые точки — 30+ кг.',
+    info: 'Peak dumbbell weight per session (kg per arm). PR: 32.5 kg (Mar 2026). Orange dots — 30+ kg.',
     yMin: 10, yMax: 35,
     data: [
       { x:'2024-04-17', y:27.5, note:'' },
       { x:'2024-05-08', y:25,   note:'' },
       { x:'2024-05-27', y:27.5, note:'' },
       { x:'2024-06-13', y:27.5, note:'' },
-      { x:'2024-06-19', y:27.5, note:'Надо больше' },
+      { x:'2024-06-19', y:27.5, note:'Need more' },
       { x:'2024-06-24', y:25,   note:'' },
-      { x:'2024-11-15', y:17.5, note:'Тирана — лёгкая' },
+      { x:'2024-11-15', y:17.5, note:'Tirana — light' },
       { x:'2024-11-28', y:25,   note:'' },
       { x:'2024-12-07', y:25,   note:'' },
       { x:'2024-12-13', y:27.5, note:'' },
       { x:'2024-12-16', y:25,   note:'' },
-      { x:'2024-12-19', y:12.5, note:'45° наклон' },
+      { x:'2024-12-19', y:12.5, note:'45° incline' },
       { x:'2024-12-21', y:25,   note:'' },
       { x:'2025-01-20', y:27.5, note:'' },
       { x:'2025-01-28', y:27.5, note:'' },
       { x:'2025-02-05', y:27.5, note:'' },
-      { x:'2025-02-12', y:30,   note:'Первые 30!' },
-      { x:'2025-02-15', y:27.5, note:'После болезни' },
+      { x:'2025-02-12', y:30,   note:'First 30!' },
+      { x:'2025-02-15', y:27.5, note:'After illness' },
       { x:'2025-02-18', y:30,   note:'' },
       { x:'2025-03-27', y:30,   note:'' },
       { x:'2025-04-03', y:30,   note:'' },
@@ -442,16 +442,16 @@ const EXERCISES = {
       { x:'2026-02-25', y:30,   note:'' },
       { x:'2026-03-07', y:27.5, note:'' },
       { x:'2026-03-14', y:30,   note:'' },
-      { x:'2026-03-27', y:32.5, note:'🔥 РЕКОРД 32.5 кг!' },
+      { x:'2026-03-27', y:32.5, note:'🔥 PR 32.5 kg!' },
       { x:'2026-06-06', y:30,   note:'' },
     ],
   },
 
   squat: {
-    name: 'Присед',
+    name: 'Squat',
     color: '#3fb950',
     bgColor: 'rgba(63,185,80,0.08)',
-    info: 'Топ вес за тренировку (кг). Рекорд: 125×2 (фев 2026). Оранжевые точки — 120+ кг.',
+    info: 'Peak weight per session (kg). PR: 125×2 (Feb 2026). Orange dots — 120+ kg.',
     yMin: 40, yMax: 135,
     data: [
       { x:'2023-07-07', y:95,  note:'95×8' },
@@ -461,14 +461,14 @@ const EXERCISES = {
       { x:'2023-12-22', y:100, note:'100×9' },
       { x:'2024-03-15', y:80,  note:'' },
       { x:'2024-04-20', y:100, note:'' },
-      { x:'2024-11-08', y:60,  note:'Тирана' },
+      { x:'2024-11-08', y:60,  note:'Tirana' },
       { x:'2024-12-07', y:80,  note:'' },
       { x:'2025-02-16', y:90,  note:'' },
       { x:'2025-02-21', y:100, note:'100×8' },
       { x:'2025-03-23', y:90,  note:'' },
       { x:'2025-04-26', y:100, note:'' },
       { x:'2025-05-10', y:80,  note:'' },
-      { x:'2026-02-07', y:125, note:'🔥 РЕКОРД 125×2!' },
+      { x:'2026-02-07', y:125, note:'🔥 PR 125×2!' },
       { x:'2026-02-16', y:90,  note:'' },
       { x:'2026-02-21', y:100, note:'100×8' },
       { x:'2026-03-23', y:90,  note:'' },
@@ -564,18 +564,18 @@ const EXERCISES = {
   },
 
   deadlift: {
-    name: 'Становая',
+    name: 'Deadlift',
     color: '#ff7b72',
     bgColor: 'rgba(255,123,114,0.08)',
-    info: 'Максимальный вес за тренировку (кг). Рекорд: 90×8 (мар 2024). Оранжевые точки — 90 кг.',
+    info: 'Peak weight per session (kg). PR: 90×8 (Mar 2024). Orange dots — 90 kg.',
     yMin: 40, yMax: 100,
     data: [
       { x:'2023-07-10', y:80, note:'80×10' },
-      { x:'2023-11-14', y:60, note:'Лёгкая' },
-      { x:'2023-12-28', y:80, note:'дошёл до 80×10' },
-      { x:'2024-03-16', y:90, note:'90×8 — рекорд!' },
+      { x:'2023-11-14', y:60, note:'Light' },
+      { x:'2023-12-28', y:80, note:'reached 80×10' },
+      { x:'2024-03-16', y:90, note:'90×8 — PR!' },
       { x:'2024-05-22', y:70, note:'' },
-      { x:'2025-01-28', y:75, note:'RDL стиль' },
+      { x:'2025-01-28', y:75, note:'RDL style' },
       { x:'2025-02-05', y:75, note:'' },
       { x:'2025-02-12', y:60, note:'' },
       { x:'2025-03-27', y:60, note:'' },
@@ -621,16 +621,16 @@ function buildExStats(exKey) {
   const lastEntry = data[data.length - 1];
   const aboveMax = data.filter(d => d.y >= PR_THRESHOLDS[exKey]).length;
 
-  const months = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   function fmtDate(iso) {
     const [y, m] = iso.split('-');
     return `${months[+m-1]} ${y}`;
   }
 
-  let html = `<div class="ex-stat">Максимум: <strong>${maxEntry.y} кг</strong> (${fmtDate(maxEntry.x)})</div>`;
-  html += `<div class="ex-stat">Последняя запись: <strong>${lastEntry.y} кг</strong> (${fmtDate(lastEntry.x)})</div>`;
-  html += `<div class="ex-stat">Сессий записано: <strong>${data.length}</strong></div>`;
-  if (aboveMax > 0 && exKey !== 'dips') html += `<div class="ex-stat">Топ-сессий (≥${PR_THRESHOLDS[exKey]}кг): <strong>${aboveMax}</strong></div>`;
+  let html = `<div class="ex-stat">Peak: <strong>${maxEntry.y} kg</strong> (${fmtDate(maxEntry.x)})</div>`;
+  html += `<div class="ex-stat">Last entry: <strong>${lastEntry.y} kg</strong> (${fmtDate(lastEntry.x)})</div>`;
+  html += `<div class="ex-stat">Sessions: <strong>${data.length}</strong></div>`;
+  if (aboveMax > 0 && exKey !== 'dips') html += `<div class="ex-stat">Top sessions (≥${PR_THRESHOLDS[exKey]}kg): <strong>${aboveMax}</strong></div>`;
   return html;
 }
 
@@ -691,7 +691,7 @@ exChart = new Chart(document.getElementById('exChart'), {
           label: ctx => {
             const ex = EXERCISES[currentEx];
             const d = ex.data[ctx.dataIndex];
-            return d.note ? `${ctx.parsed.y} кг — ${d.note}` : `${ctx.parsed.y} кг`;
+            return d.note ? `${ctx.parsed.y} kg — ${d.note}` : `${ctx.parsed.y} kg`;
           },
         },
       },
@@ -704,7 +704,7 @@ exChart = new Chart(document.getElementById('exChart'), {
       },
       y: {
         min: initEx.yMin, max: initEx.yMax,
-        ticks: { stepSize:10, callback: v => v+' кг' },
+        ticks: { stepSize:10, callback: v => v+' kg' },
         grid: { color:'#21262d' },
       },
     },
@@ -745,7 +745,7 @@ new Chart(document.getElementById('freqChart'), {
             const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
             return `${months[+mo-1]} ${yr}`;
           },
-          label: ctx => `${ctx.parsed.y} тренировок`,
+          label: ctx => `${ctx.parsed.y} sessions`,
         },
       },
     },
@@ -808,15 +808,15 @@ async function loadGarminFromSupabase() {
 }
 
 const GARMIN_META = {
-  resting_hr:           { name:'Пульс покоя',       unit:'уд/мин', color:'#f85149', yMin:35, yMax:70,  info:'Пульс сердца в состоянии покоя утром. Для тренированного человека норма — 40–55 уд/мин. Рост выше базы на 5+ уд/мин сигнализирует о перетренированности или начале болезни.' },
-  body_battery_morning: { name:'Body Battery',       unit:'',       color:'#3fb950', yMin:0,  yMax:100, info:'Энергетический резерв тела на утро по шкале 0–100. >75 — можно тренироваться интенсивно, 40–75 — умеренная нагрузка, <40 — лучше день отдыха или лёгкое кардио.' },
-  stress_avg:           { name:'Стресс (avg)',        unit:'',       color:'#d29922', yMin:0,  yMax:80,  info:'Средний уровень стресса за день, рассчитывается по вариабельности пульса. 0–25 = покой, 26–50 = низкий стресс, 51–75 = средний, 76+ = высокий. Включает физический и ментальный стресс.' },
-  sleep_score:          { name:'Оценка сна',          unit:'',       color:'#58a6ff', yMin:0,  yMax:100, info:'Интегральная оценка качества сна от Garmin (0–100). Учитывает длительность, фазы сна (глубокий, REM), количество пробуждений и уровень восстановления. >80 — отличный сон.' },
-  sleep_hours:          { name:'Часов сна',           unit:'ч',      color:'#bc8cff', yMin:3,  yMax:12,  info:'Суммарная продолжительность сна за ночь. Рекомендуется 7–9 часов для полного восстановления после силовых тренировок. Хронический недосып ускоряет потерю мышечной массы.' },
-  sleep_start_h:        { name:'Время засыпания',     unit:'',       color:'#ff7b72', yMin:21, yMax:32,  info:'Время, когда Garmin зафиксировал начало сна. Ось: 22 = 22:00, 24 = полночь, 26 = 02:00, 28 = 04:00. Постоянное засыпание после 02:00 снижает качество восстановления.' },
-  vo2max:               { name:'VO₂ max',             unit:'мл/кг/мин', color:'#3fb950', yMin:45, yMax:62, info:'Максимальное потребление кислорода — ключевой показатель аэробной формы. >55 = отлично для мужчин. Обновляется автоматически после кардиотренировок с GPS.' },
-  hrv_weekly_avg:       { name:'HRV (нед. среднее)',  unit:'мс',     color:'#58a6ff', yMin:50, yMax:100, info:'Вариабельность сердечного ритма — недельное среднее (мс). Чем выше, тем лучше восстановление вегетативной нервной системы. Резкое снижение = сигнал к снижению нагрузки. Данные с марта 2026 (Forerunner 970).' },
-  steps:                { name:'Шаги',                unit:'шаг',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Количество шагов за день. ВОЗ рекомендует 8 000–10 000 шагов. Резкий спад может указывать на болезнь или вынужденный отдых.' },
+  resting_hr:           { name:'Resting HR',       unit:'bpm', color:'#f85149', yMin:35, yMax:70,  info:'Morning resting heart rate. Fit individuals typically see 40–55 bpm. A rise of 5+ bpm above baseline signals overtraining or illness.' },
+  body_battery_morning: { name:'Body Battery',       unit:'',       color:'#3fb950', yMin:0,  yMax:100, info:'Morning energy reserve on a 0–100 scale. >75 — train intensely, 40–75 — moderate load, <40 — rest day or light cardio.' },
+  stress_avg:           { name:'Stress (avg)',        unit:'',       color:'#d29922', yMin:0,  yMax:80,  info:'Average daily stress based on HRV. 0–25 = rest, 26–50 = low, 51–75 = medium, 76+ = high. Includes both physical and mental stress.' },
+  sleep_score:          { name:'Sleep score',          unit:'',       color:'#58a6ff', yMin:0,  yMax:100, info:'Garmin\'s overall sleep quality score (0–100). Considers duration, sleep stages (deep, REM), awakenings, and recovery. >80 = excellent.' },
+  sleep_hours:          { name:'Sleep hours',           unit:'h',      color:'#bc8cff', yMin:3,  yMax:12,  info:'Total sleep duration per night. 7–9 hours recommended for full recovery after strength training. Chronic sleep deprivation accelerates muscle loss.' },
+  sleep_start_h:        { name:'Bedtime',     unit:'',       color:'#ff7b72', yMin:21, yMax:32,  info:'Time Garmin detected sleep onset. Axis: 22 = 10 PM, 24 = midnight, 26 = 2 AM, 28 = 4 AM. Consistently sleeping after 2 AM reduces recovery quality.' },
+  vo2max:               { name:'VO₂ max',             unit:'ml/kg/min', color:'#3fb950', yMin:45, yMax:62, info:'Maximum oxygen uptake — key aerobic fitness indicator. >55 = excellent for men. Updated automatically after GPS cardio sessions.' },
+  hrv_weekly_avg:       { name:'HRV (weekly avg)',  unit:'ms',     color:'#58a6ff', yMin:50, yMax:100, info:'Heart rate variability — weekly average (ms). Higher = better autonomic recovery. A sharp drop signals to reduce load. Data from March 2026 (Forerunner 970).' },
+  steps:                { name:'Steps',                unit:'steps',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Daily step count. WHO recommends 8,000–10,000 steps. A sharp drop may indicate illness or forced rest.' },
 };
 
 let garminChart = null;
@@ -858,7 +858,7 @@ function aggregateGarmin(data, period) {
 
 function buildGarminStats(key) {
   const data = GARMIN[key];
-  if (!data || !data.length) return '<span class="garmin-stat">Нет данных</span>';
+  if (!data || !data.length) return '<span class="garmin-stat">No data</span>';
   const vals = data.map(d => d.y);
   const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
   const mn  = Math.min(...vals);
@@ -871,10 +871,10 @@ function buildGarminStats(key) {
   let mnStr = mn.toFixed(1)+unit, mxStr = mx.toFixed(1)+unit;
   if (key === 'sleep_start_h') { mnStr = sleepHourToLabel(mn); mxStr = sleepHourToLabel(mx); }
   return `
-    <div class="garmin-stat">Среднее: <strong>${avgStr}</strong></div>
-    <div class="garmin-stat">Минимум: <strong>${mnStr}</strong></div>
-    <div class="garmin-stat">Максимум: <strong>${mxStr}</strong></div>
-    <div class="garmin-stat">Дней: <strong>${data.length}</strong></div>
+    <div class="garmin-stat">Avg: <strong>${avgStr}</strong></div>
+    <div class="garmin-stat">Min: <strong>${mnStr}</strong></div>
+    <div class="garmin-stat">Max: <strong>${mxStr}</strong></div>
+    <div class="garmin-stat">Days: <strong>${data.length}</strong></div>
   `;
 }
 
@@ -967,7 +967,7 @@ garminChart = new Chart(document.getElementById('garminChart'), {
             const aggData = aggregateGarmin(GARMIN[currentGm] || [], currentPeriod);
             const d = aggData[ctx.dataIndex];
             const meta = GARMIN_META[currentGm];
-            if (currentGm === 'sleep_start_h') return 'Засыпание: ' + (d && d.label ? d.label : sleepHourToLabel(ctx.parsed.y));
+            if (currentGm === 'sleep_start_h') return 'Bedtime: ' + (d && d.label ? d.label : sleepHourToLabel(ctx.parsed.y));
             return meta.name + ': ' + ctx.parsed.y + (meta.unit ? ' ' + meta.unit : '');
           },
         },
@@ -981,7 +981,7 @@ garminChart = new Chart(document.getElementById('garminChart'), {
       },
       y: {
         min: initGmMeta.yMin, max: initGmMeta.yMax,
-        ticks: { callback: v => v + ' уд/мин' },
+        ticks: { callback: v => v + ' bpm' },
         grid: { color:'#21262d' },
       },
     },
