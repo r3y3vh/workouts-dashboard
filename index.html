@@ -781,12 +781,12 @@ switchExercise('dumbbell_bench');
 
 // ─── FREQUENCY CHART ─────────────────────────────────────────────────────────
 
-new Chart(document.getElementById('freqChart'), {
+const freqChart = new Chart(document.getElementById('freqChart'), {
   type: 'bar',
   data: {
     labels: freqData.map(d => d.x),
     datasets: [{
-      label: 'Тренировок',
+      label: 'Sessions',
       data: freqData.map(d => d.y),
       backgroundColor: freqData.map(d => d.y >= 10 ? '#f0883e' : d.y >= 7 ? '#3fb950' : d.y >= 4 ? '#388bfd' : '#1f4068'),
       borderRadius: 4,
@@ -802,7 +802,7 @@ new Chart(document.getElementById('freqChart'), {
         callbacks: {
           title: ctx => {
             const [yr, mo] = ctx[0].label.split('-');
-            const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             return `${months[+mo-1]} ${yr}`;
           },
           label: ctx => `${ctx.parsed.y} sessions`,
@@ -817,7 +817,7 @@ new Chart(document.getElementById('freqChart'), {
           maxRotation: 45,
           callback(val, idx) {
             const [yr, mo] = freqData[idx].x.split('-');
-            const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             return `${months[+mo-1]} '${yr.slice(2)}`;
           },
         },
@@ -1070,6 +1070,35 @@ let _logSessions = [];
 let _logPage = 0;
 const LOG_PAGE_SIZE = 5;
 
+function updateFreqChart(sessions) {
+  // count sessions per month from Supabase
+  const sbCounts = {};
+  sessions.forEach(s => {
+    const mo = s.date.slice(0, 7); // 'YYYY-MM'
+    sbCounts[mo] = (sbCounts[mo] || 0) + 1;
+  });
+
+  // merge with hardcoded freqData: replace/add months from Supabase
+  const merged = {};
+  freqData.forEach(d => { merged[d.x] = d.y; });
+  Object.entries(sbCounts).forEach(([mo, cnt]) => { merged[mo] = cnt; });
+
+  const sorted = Object.entries(merged).sort(([a],[b]) => a.localeCompare(b));
+  const labels = sorted.map(([x]) => x);
+  const values = sorted.map(([,y]) => y);
+  const colors = values.map(v => v >= 10 ? '#f0883e' : v >= 7 ? '#3fb950' : v >= 4 ? '#388bfd' : '#1f4068');
+
+  freqChart.data.labels = labels;
+  freqChart.data.datasets[0].data = values;
+  freqChart.data.datasets[0].backgroundColor = colors;
+  freqChart.options.scales.x.ticks.callback = function(val, idx) {
+    const [yr, mo] = labels[idx].split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[+mo-1]} '${yr.slice(2)}`;
+  };
+  freqChart.update();
+}
+
 async function loadWorkoutLog() {
   const { data, error } = await _sbClient
     .from('sessions')
@@ -1081,6 +1110,7 @@ async function loadWorkoutLog() {
   if (error || !data) { console.error('Log load error:', error); return; }
 
   _logSessions = data;
+  updateFreqChart(data);
   renderLog();
 }
 
