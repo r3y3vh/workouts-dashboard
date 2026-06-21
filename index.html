@@ -193,6 +193,51 @@
   .garmin-stat { font-size: 12px; color: #8b949e; }
   .garmin-stat strong { color: #e6edf3; }
 
+
+  /* ── Workout log ──────────────────────────────────────────────── */
+  .log-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; }
+  .log-header h2 { margin-bottom: 0; }
+  .log-session {
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .log-session-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    background: #21262d;
+  }
+  .log-date { font-size: 13px; font-weight: 600; color: #e6edf3; min-width: 90px; }
+  .log-type { font-size: 12px; color: #58a6ff; background: #0d2044; padding: 2px 8px; border-radius: 10px; }
+  .log-notes { font-size: 12px; color: #8b949e; }
+  .log-sets { padding: 10px 14px; }
+  .log-exercise { margin-bottom: 8px; }
+  .log-exercise:last-child { margin-bottom: 0; }
+  .log-exercise-name { font-size: 12px; font-weight: 600; color: #c9d1d9; margin-bottom: 3px; }
+  .log-set-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .log-pill {
+    font-size: 11px; color: #8b949e;
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 4px; padding: 2px 7px;
+  }
+  .log-pill.warmup { opacity: 0.5; }
+  .log-pagination { display: flex; align-items: center; gap: 12px; margin-top: 16px; justify-content: center; }
+  .log-pg-btn {
+    padding: 6px 16px; border-radius: 6px; border: 1px solid #30363d;
+    background: #21262d; color: #8b949e; font-size: 13px; cursor: pointer;
+  }
+  .log-pg-btn:hover:not(:disabled) { border-color: #484f58; color: #c9d1d9; }
+  .log-pg-btn:disabled { opacity: 0.35; cursor: default; }
+  .log-pg-info { font-size: 12px; color: #8b949e; }
+  .log-empty { font-size: 13px; color: #8b949e; text-align: center; padding: 24px 0; }
   footer { text-align: center; font-size: 11px; color: #484f58; margin-top: 24px; padding-top: 16px; border-top: 1px solid #21262d; }
 </style>
 </head>
@@ -350,6 +395,21 @@
     <li><span class="event-dot dot-red"></span><span class="event-date">Feb 2026</span><span class="event-text"><strong>SQUAT PR 125×2!</strong> Bench 85×1 recovered fast.</span></li>
     <li><span class="event-dot dot-yellow"></span><span class="event-date">Mar–May 2026</span><span class="event-text">Break ~2 months. Last entry 06.06.2026.</span></li>
   </ul>
+</div>
+
+
+<!-- Workout log -->
+<div class="log-card">
+  <div class="log-header">
+    <h2>Workout log</h2>
+    <span id="logLoading" style="font-size:12px;color:#8b949e;">Loading…</span>
+  </div>
+  <div id="logList"></div>
+  <div class="log-pagination" id="logPagination" style="display:none;">
+    <button class="log-pg-btn" id="logPrev" onclick="logPage(-1)">← Prev</button>
+    <span class="log-pg-info" id="logPgInfo"></span>
+    <button class="log-pg-btn" id="logNext" onclick="logPage(1)">Next →</button>
+  </div>
 </div>
 
 <footer>
@@ -1003,6 +1063,91 @@ loadGarminFromSupabase().then(() => {
   if (_garminLoading) _garminLoading.textContent = 'Ошибка загрузки данных';
   console.error(err);
 });
+
+// ─── WORKOUT LOG ──────────────────────────────────────────────────────────────
+
+let _logSessions = [];
+let _logPage = 0;
+const LOG_PAGE_SIZE = 5;
+
+async function loadWorkoutLog() {
+  const { data, error } = await _sbClient
+    .from('sessions')
+    .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup)')
+    .order('date', { ascending: false })
+    .limit(200);
+
+  document.getElementById('logLoading').style.display = 'none';
+  if (error || !data) { console.error('Log load error:', error); return; }
+
+  _logSessions = data;
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('logList');
+  const pagination = document.getElementById('logPagination');
+  const total = _logSessions.length;
+
+  if (total === 0) {
+    list.innerHTML = '<div class="log-empty">No sessions yet</div>';
+    return;
+  }
+
+  const start = _logPage * LOG_PAGE_SIZE;
+  const slice = _logSessions.slice(start, start + LOG_PAGE_SIZE);
+
+  list.innerHTML = slice.map(s => {
+    // group sets by exercise
+    const byEx = {};
+    (s.sets || []).forEach(set => {
+      if (!byEx[set.exercise]) byEx[set.exercise] = [];
+      byEx[set.exercise].push(set);
+    });
+
+    const exHtml = Object.entries(byEx).map(([ex, sets]) => {
+      const pills = sets.map(st => {
+        const w = st.weight != null ? st.weight + ' kg' : '';
+        const r = st.reps != null ? '×' + st.reps : '';
+        const n = st.sets_count != null && st.sets_count > 1 ? st.sets_count + '×' : '';
+        const label = (n + (w ? w : '') + r) || st.raw_line || '—';
+        return `<span class="log-pill${st.is_warmup ? ' warmup' : ''}">${label}</span>`;
+      }).join('');
+      return `<div class="log-exercise">
+        <div class="log-exercise-name">${ex}</div>
+        <div class="log-set-pills">${pills}</div>
+      </div>`;
+    }).join('');
+
+    const typeTag = s.type ? `<span class="log-type">${s.type}</span>` : '';
+    const notesTag = s.notes ? `<span class="log-notes">${s.notes}</span>` : '';
+
+    return `<div class="log-session">
+      <div class="log-session-head">
+        <span class="log-date">${s.date}</span>
+        ${typeTag}${notesTag}
+      </div>
+      <div class="log-sets">${exHtml || '<span style="color:#8b949e;font-size:12px;">No sets recorded</span>'}</div>
+    </div>`;
+  }).join('');
+
+  // pagination
+  const totalPages = Math.ceil(total / LOG_PAGE_SIZE);
+  if (totalPages > 1) {
+    pagination.style.display = 'flex';
+    document.getElementById('logPgInfo').textContent = `${start + 1}–${Math.min(start + LOG_PAGE_SIZE, total)} of ${total}`;
+    document.getElementById('logPrev').disabled = _logPage === 0;
+    document.getElementById('logNext').disabled = _logPage >= totalPages - 1;
+  }
+}
+
+function logPage(dir) {
+  _logPage += dir;
+  renderLog();
+  document.getElementById('logList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+loadWorkoutLog();
 
 </script>
 </body>
