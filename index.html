@@ -518,8 +518,17 @@ function switchExercise(exKey) {
     exChart.data.datasets[0].pointBackgroundColor = colors;
     exChart.data.datasets[0].pointBorderColor = colors;
     exChart.data.datasets[0].label = ex.name;
-    exChart.options.scales.y.min = ex.yMin;
-    exChart.options.scales.y.max = ex.yMax;
+    // Auto-scale Y to the actual data with padding
+    if (ex.data.length) {
+      const ys = ex.data.map(d => d.y);
+      const lo = Math.min(...ys), hi = Math.max(...ys);
+      const pad = Math.max(5, (hi - lo) * 0.15);
+      exChart.options.scales.y.min = Math.floor((lo - pad) / 5) * 5;
+      exChart.options.scales.y.max = Math.ceil((hi + pad) / 5) * 5;
+    } else {
+      exChart.options.scales.y.min = ex.yMin;
+      exChart.options.scales.y.max = ex.yMax;
+    }
     exChart.update();
   }
 }
