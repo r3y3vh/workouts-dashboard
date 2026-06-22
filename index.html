@@ -915,8 +915,9 @@ function updateFreqChart(sessions) {
 async function loadWorkoutLog() {
   const { data, error } = await _sbClient
     .from('sessions')
-    .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup)')
+    .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup, created_at)')
     .order('date', { ascending: false })
+    .order('created_at', { referencedTable: 'sets', ascending: true })
     .limit(200);
 
   document.getElementById('logLoading').style.display = 'none';
