@@ -579,7 +579,9 @@ exChart = new Chart(document.getElementById('exChart'), {
           label: ctx => {
             const ex = EXERCISES[currentEx];
             const d = ex.data[ctx.dataIndex];
-            return d.note ? `${ctx.parsed.y} kg — ${d.note}` : `${ctx.parsed.y} kg`;
+            const repsStr = d.reps ? (d.sets_count && d.sets_count > 1 ? `${d.sets_count}×${d.reps}` : `×${d.reps}`) : '';
+            const base = repsStr ? `${ctx.parsed.y} kg ${repsStr}` : `${ctx.parsed.y} kg`;
+            return d.note ? `${base} — ${d.note}` : base;
           },
         },
       },
@@ -1019,7 +1021,7 @@ const EX_NAME_MAP = {
 async function loadExerciseData() {
   const { data, error } = await _sbClient
     .from('sets')
-    .select('exercise, weight, date')
+    .select('exercise, weight, reps, sets_count, date')
     .not('weight', 'is', null)
     .order('date');
   if (error || !data) return;
@@ -1031,7 +1033,7 @@ async function loadExerciseData() {
       if (test(row.exercise)) {
         if (!byEx[key]) byEx[key] = {};
         const cur = byEx[key][row.date];
-        if (cur == null || row.weight > cur) byEx[key][row.date] = row.weight;
+        if (cur == null || row.weight > cur) byEx[key][row.date] = { weight: row.weight, reps: row.reps, sets_count: row.sets_count };
         break;
       }
     }
@@ -1042,8 +1044,8 @@ async function loadExerciseData() {
     if (!EXERCISES[key]) continue;
     const existing = {};
     EXERCISES[key].data.forEach(p => { existing[p.x] = p; });
-    for (const [date, weight] of Object.entries(dateMap)) {
-      existing[date] = { x: date, y: weight, note: existing[date]?.note || '' };
+    for (const [date, info] of Object.entries(dateMap)) {
+      existing[date] = { x: date, y: info.weight, reps: info.reps, sets_count: info.sets_count, note: existing[date]?.note || '' };
     }
     EXERCISES[key].data = Object.values(existing).sort((a, b) => a.x.localeCompare(b.x));
   }
