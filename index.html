@@ -479,7 +479,12 @@ function buildPointColors(exKey, data) {
 function buildExStats(exKey) {
   const data = EXERCISES[exKey].data;
   if (!data || !data.length) return '<span class="ex-stat">Loading…</span>';
-  const maxEntry = data.reduce((a,b) => b.y > a.y ? b : a);
+  // Peak by weight; at equal weight prefer more reps, then more recent
+  const maxEntry = data.reduce((a, b) => {
+    if (b.y !== a.y) return b.y > a.y ? b : a;
+    if ((b.reps || 0) !== (a.reps || 0)) return (b.reps || 0) > (a.reps || 0) ? b : a;
+    return b.x > a.x ? b : a;
+  });
   const lastEntry = data[data.length - 1];
   const aboveMax = data.filter(d => d.y >= PR_THRESHOLDS[exKey]).length;
 
@@ -489,7 +494,8 @@ function buildExStats(exKey) {
     return `${months[+m-1]} ${y}`;
   }
 
-  let html = `<div class="ex-stat">Peak: <strong>${maxEntry.y} kg</strong> (${fmtDate(maxEntry.x)})</div>`;
+  const peakReps = maxEntry.reps ? `×${maxEntry.reps}` : '';
+  let html = `<div class="ex-stat">Peak: <strong>${maxEntry.y} kg${peakReps}</strong> (${fmtDate(maxEntry.x)})</div>`;
   html += `<div class="ex-stat">Last entry: <strong>${lastEntry.y} kg</strong> (${fmtDate(lastEntry.x)})</div>`;
   html += `<div class="ex-stat">Sessions: <strong>${data.length}</strong></div>`;
   if (aboveMax > 0 && exKey !== 'dips') html += `<div class="ex-stat">Top sessions (≥${PR_THRESHOLDS[exKey]}kg): <strong>${aboveMax}</strong></div>`;
