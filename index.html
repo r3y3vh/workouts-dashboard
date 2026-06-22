@@ -420,57 +420,31 @@
 // ─── EXERCISE DATA ─────────────────────────────────────────────────────────────
 
 const EXERCISES = {
-  bench: {
-    name: 'Barbell bench press',
-    color: '#58a6ff',
-    bgColor: 'rgba(88,166,255,0.08)',
-    info: 'Peak barbell weight per session (kg). PR: 90 kg (Apr 2025). Orange dots — 85+ kg.',
-    yMin: 25, yMax: 100,
-    data: [],
-  },
-
   dumbbell_bench: {
     name: 'DB bench (1 arm)',
     color: '#ffa657',
     bgColor: 'rgba(255,166,87,0.08)',
     info: 'Peak dumbbell weight per session (kg per arm). PR: 32.5 kg (Mar 2026). Orange dots — 30+ kg.',
     yMin: 10, yMax: 35,
+    match: n => /dumbbell/i.test(n) && /bench/i.test(n),
     data: [],
   },
-
   squat: {
     name: 'Squat',
     color: '#3fb950',
     bgColor: 'rgba(63,185,80,0.08)',
     info: 'Peak weight per session (kg). PR: 125×2 (Feb 2026). Orange dots — 120+ kg.',
     yMin: 40, yMax: 135,
+    match: n => /squat/i.test(n),
     data: [],
   },
-
-  butterfly: {
-    name: 'Бабочка',
-    color: '#bc8cff',
-    bgColor: 'rgba(188,140,255,0.08)',
-    info: 'Максимальный вес за тренировку (кг). Смена оборудования при переезде в Тирану.',
-    yMin: 15, yMax: 95,
-    data: [],
-  },
-
-  dips: {
-    name: 'Брусья (+вес)',
-    color: '#f0883e',
-    bgColor: 'rgba(240,136,62,0.08)',
-    info: 'Добавленный вес (кг). 0 = собственный вес.',
-    yMin: 0, yMax: 50,
-    data: [],
-  },
-
   deadlift: {
     name: 'Deadlift',
     color: '#ff7b72',
     bgColor: 'rgba(255,123,114,0.08)',
     info: 'Peak weight per session (kg). PR: 90×8 (Mar 2024). Orange dots — 90 kg.',
     yMin: 40, yMax: 100,
+    match: n => /deadlift/i.test(n),
     data: [],
   },
 };
@@ -492,7 +466,7 @@ const freqData = [
 Chart.defaults.color = '#8b949e';
 Chart.defaults.borderColor = '#21262d';
 
-const PR_THRESHOLDS = { bench:85, squat:120, butterfly:80, dips:35, deadlift:90, dumbbell_bench:30 };
+const PR_THRESHOLDS = { dumbbell_bench:30, squat:120, deadlift:90 };
 
 let exChart = null;
 let currentEx = 'dumbbell_bench';
@@ -1010,47 +984,27 @@ function logPage(dir) {
 
 // ─── EXERCISE DATA FROM SUPABASE ──────────────────────────────────────────────
 
-const EX_NAME_MAP = {
-  dumbbell_bench: name => /bench press dumbbells/i.test(name),
-  bench:          name => /barbell bench press/i.test(name),
-  squat:          name => /^squat/i.test(name),
-  deadlift:       name => /^deadlift/i.test(name),
-  butterfly:      name => /^butterfly/i.test(name),
-};
-
 async function loadExerciseData() {
   const { data, error } = await _sbClient
     .from('sets')
     .select('exercise, weight, reps, sets_count, date')
     .not('weight', 'is', null)
     .order('date');
-  if (error || !data) return;
+  if (error || !data) { console.error('Exercise load error:', error); return; }
 
-  // group by exKey → date → max weight
-  const byEx = {};
-  for (const row of data) {
-    for (const [key, test] of Object.entries(EX_NAME_MAP)) {
-      if (test(row.exercise)) {
-        if (!byEx[key]) byEx[key] = {};
-        const cur = byEx[key][row.date];
-        if (cur == null || row.weight > cur.weight) byEx[key][row.date] = { weight: row.weight, reps: row.reps, sets_count: row.sets_count };
-        break;
+  // For each tracked exercise: per date, keep the single set with the heaviest weight
+  for (const [key, ex] of Object.entries(EXERCISES)) {
+    const byDate = {};
+    for (const row of data) {
+      if (!ex.match(row.exercise)) continue;
+      const cur = byDate[row.date];
+      if (!cur || row.weight > cur.y) {
+        byDate[row.date] = { x: row.date, y: row.weight, reps: row.reps, sets_count: row.sets_count };
       }
     }
+    ex.data = Object.values(byDate).sort((a, b) => a.x.localeCompare(b.x));
   }
 
-  // merge into EXERCISES: Supabase points replace hardcoded for same date, new dates added
-  for (const [key, dateMap] of Object.entries(byEx)) {
-    if (!EXERCISES[key]) continue;
-    const existing = {};
-    EXERCISES[key].data.forEach(p => { existing[p.x] = p; });
-    for (const [date, info] of Object.entries(dateMap)) {
-      existing[date] = { x: date, y: info.weight, reps: info.reps, sets_count: info.sets_count, note: existing[date]?.note || '' };
-    }
-    EXERCISES[key].data = Object.values(existing).sort((a, b) => a.x.localeCompare(b.x));
-  }
-
-  // refresh chart if current exercise was updated
   switchExercise(currentEx);
 }
 
