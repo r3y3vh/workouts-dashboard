@@ -1033,7 +1033,7 @@ async function loadExerciseData() {
       if (test(row.exercise)) {
         if (!byEx[key]) byEx[key] = {};
         const cur = byEx[key][row.date];
-        if (cur == null || row.weight > cur) byEx[key][row.date] = { weight: row.weight, reps: row.reps, sets_count: row.sets_count };
+        if (cur == null || row.weight > cur.weight) byEx[key][row.date] = { weight: row.weight, reps: row.reps, sets_count: row.sets_count };
         break;
       }
     }
