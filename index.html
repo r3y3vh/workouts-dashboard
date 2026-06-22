@@ -504,6 +504,7 @@ function buildPointColors(exKey, data) {
 
 function buildExStats(exKey) {
   const data = EXERCISES[exKey].data;
+  if (!data || !data.length) return '<span class="ex-stat">Loading…</span>';
   const maxEntry = data.reduce((a,b) => b.y > a.y ? b : a);
   const lastEntry = data[data.length - 1];
   const aboveMax = data.filter(d => d.y >= PR_THRESHOLDS[exKey]).length;
@@ -604,7 +605,7 @@ document.querySelectorAll('.ex-btn').forEach(btn => {
 });
 
 // Init stats
-switchExercise('dumbbell_bench');
+// switchExercise called after loadExerciseData populates data
 
 // ─── FREQUENCY CHART ─────────────────────────────────────────────────────────
 
