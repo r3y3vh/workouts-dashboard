@@ -270,18 +270,18 @@
   </div>
   <div class="stat-card pr">
     <div class="label">DB Bench PR</div>
-    <div class="value">32.5 кг</div>
-    <div class="sub">32.5×4 — Mar 2026</div>
+    <div class="value" id="prDumbbellBenchVal">—</div>
+    <div class="sub" id="prDumbbellBenchSub"></div>
   </div>
   <div class="stat-card pr">
     <div class="label">Squat PR</div>
-    <div class="value">125 кг</div>
-    <div class="sub">125×2 — Feb 2026</div>
+    <div class="value" id="prSquatVal">—</div>
+    <div class="sub" id="prSquatSub"></div>
   </div>
   <div class="stat-card pr">
     <div class="label">Deadlift PR</div>
-    <div class="value">90 кг</div>
-    <div class="sub">90×8 — Mar 2024</div>
+    <div class="value" id="prDeadliftVal">—</div>
+    <div class="sub" id="prDeadliftSub"></div>
   </div>
   <div class="stat-card">
     <div class="label">Status</div>
@@ -1022,6 +1022,29 @@ async function loadExerciseData() {
   }
 
   switchExercise(currentEx);
+  updatePrCards();
+}
+
+function updatePrCards() {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const cards = {
+    dumbbell_bench: ['prDumbbellBenchVal', 'prDumbbellBenchSub'],
+    squat:          ['prSquatVal', 'prSquatSub'],
+    deadlift:       ['prDeadliftVal', 'prDeadliftSub'],
+  };
+  for (const [key, [valId, subId]] of Object.entries(cards)) {
+    const data = EXERCISES[key]?.data;
+    if (!data || !data.length) continue;
+    const pr = data.reduce((a, b) => {
+      if (b.y !== a.y) return b.y > a.y ? b : a;
+      if ((b.reps || 0) !== (a.reps || 0)) return (b.reps || 0) > (a.reps || 0) ? b : a;
+      return b.x > a.x ? b : a;
+    });
+    const [y, m] = pr.x.split('-');
+    const reps = pr.reps ? `×${pr.reps}` : '';
+    document.getElementById(valId).textContent = `${pr.y} kg`;
+    document.getElementById(subId).textContent = `${pr.y}${reps} — ${months[+m-1]} ${y}`;
+  }
 }
 
 loadExerciseData();
