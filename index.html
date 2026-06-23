@@ -353,7 +353,7 @@
     <button class="garmin-btn" data-gm="sleep_start_h">Bedtime</button>
     <button class="garmin-btn" data-gm="vo2max">VO₂ max</button>
     <button class="garmin-btn" data-gm="hrv_weekly_avg">HRV (Mar'26+)</button>
-    <button class="garmin-btn" data-gm="weight">Вес</button>
+    <button class="garmin-btn" data-gm="weight">Weight</button>
   </div>
   <div class="period-buttons" id="periodButtons">
     <button class="period-btn active" data-period="day">Daily</button>
@@ -717,7 +717,7 @@ const GARMIN_META = {
   vo2max:               { name:'VO₂ max',             unit:'ml/kg/min', color:'#3fb950', yMin:45, yMax:62, info:'Maximum oxygen uptake — key aerobic fitness indicator. >55 = excellent for men. Updated automatically after GPS cardio sessions.' },
   hrv_weekly_avg:       { name:'HRV (weekly avg)',  unit:'ms',     color:'#58a6ff', yMin:50, yMax:100, info:'Heart rate variability — weekly average (ms). Higher = better autonomic recovery. A sharp drop signals to reduce load. Data from March 2026 (Forerunner 970).' },
   steps:                { name:'Steps',                unit:'steps',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Daily step count. WHO recommends 8,000–10,000 steps. A sharp drop may indicate illness or forced rest.' },
-  weight:               { name:'Вес',                  unit:'кг',       color:'#ffa657', yMin:75, yMax:95,    info:'Масса тела по отметкам в Garmin Connect. Отслеживай тренд: при наборе силы лёгкий рост нормален, резкие скачки — вода/питание. Для рекомпозиции вес может стоять при росте мышц.' },
+  weight:               { name:'Weight',               unit:'kg',       color:'#ffa657', yMin:75, yMax:95,    info:'Body weight from Garmin Connect entries. Watch the trend: slight gain is normal when building strength; sharp swings are water/food. During recomposition weight can stay flat while muscle grows.' },
 };
 
 let garminChart = null;
