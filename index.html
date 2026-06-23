@@ -682,12 +682,18 @@ const _SB_KEY = 'sb_publishable_LGpwS76AN1InFHlDZkLY8g_A0pi88f_';
 const _sbClient = window.supabase.createClient(_SB_URL, _SB_KEY);
 
 async function loadGarminFromSupabase() {
-  const { data, error } = await _sbClient
-    .from('garmin')
-    .select('date,resting_hr,body_battery_morning,stress_avg,sleep_score,sleep_hours,sleep_start,hrv_weekly_avg,vo2max,steps,weight')
-    .order('date')
-    .limit(2000);
-  if (error || !data) { console.error('Garmin load error:', error); return; }
+  // Supabase caps each response at 1000 rows — paginate to get the full history
+  const cols = 'date,resting_hr,body_battery_morning,stress_avg,sleep_score,sleep_hours,sleep_start,hrv_weekly_avg,vo2max,steps,weight';
+  const PAGE = 1000;
+  let data = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data: page, error } = await _sbClient
+      .from('garmin').select(cols).order('date').range(from, from + PAGE - 1);
+    if (error) { console.error('Garmin load error:', error); break; }
+    if (!page || !page.length) break;
+    data = data.concat(page);
+    if (page.length < PAGE) break;
+  }
   for (const row of data) {
     const x = row.date;
     if (row.resting_hr          != null) GARMIN.resting_hr.push({x, y: row.resting_hr});
@@ -717,7 +723,7 @@ const GARMIN_META = {
   vo2max:               { name:'VO₂ max',             unit:'ml/kg/min', color:'#3fb950', yMin:45, yMax:62, info:'Maximum oxygen uptake — key aerobic fitness indicator. >55 = excellent for men. Updated automatically after GPS cardio sessions.' },
   hrv_weekly_avg:       { name:'HRV (weekly avg)',  unit:'ms',     color:'#58a6ff', yMin:50, yMax:100, info:'Heart rate variability — weekly average (ms). Higher = better autonomic recovery. A sharp drop signals to reduce load. Data from March 2026 (Forerunner 970).' },
   steps:                { name:'Steps',                unit:'steps',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Daily step count. WHO recommends 8,000–10,000 steps. A sharp drop may indicate illness or forced rest.' },
-  weight:               { name:'Weight',               unit:'kg',       color:'#ffa657', yMin:75, yMax:95,    info:'Body weight from Garmin Connect entries. Watch the trend: slight gain is normal when building strength; sharp swings are water/food. During recomposition weight can stay flat while muscle grows.' },
+  weight:               { name:'Weight',               unit:'kg',       color:'#ffa657', yMin:70, yMax:95,    info:'Body weight from Garmin Connect entries. Watch the trend: slight gain is normal when building strength; sharp swings are water/food. During recomposition weight can stay flat while muscle grows.' },
 };
 
 let garminChart = null;
