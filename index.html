@@ -410,8 +410,8 @@
     <button class="garmin-btn" data-gm="weight">Weight</button>
   </div>
   <div class="period-buttons" id="periodButtons">
-    <button class="period-btn active" data-period="day">Daily</button>
-    <button class="period-btn" data-period="week">Weekly</button>
+    <button class="period-btn" data-period="day">Daily</button>
+    <button class="period-btn active" data-period="week">Weekly</button>
     <button class="period-btn" data-period="month">Monthly</button>
   </div>
   <div class="garmin-desc" id="garminDesc"></div>
@@ -762,7 +762,7 @@ const GARMIN_META = {
 
 let garminChart = null;
 let currentGm = 'resting_hr';
-let currentPeriod = 'day';
+let currentPeriod = 'week';
 
 function sleepHourToLabel(h) {
   const actual = h >= 24 ? h - 24 : h;
