@@ -251,13 +251,7 @@
 
   /* ── Activity heatmap (monthly calendar) ──────────────────────── */
   .heatmap-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
-  .hm-nav { display: flex; align-items: center; gap: 12px; }
-  .hm-nav h2 { margin-bottom: 0; min-width: 150px; text-align: center; }
-  .hm-arrow {
-    width: 30px; height: 30px; border-radius: 6px; border: 1px solid #30363d;
-    background: #21262d; color: #c9d1d9; font-size: 15px; cursor: pointer; line-height: 1;
-  }
-  .hm-arrow:hover { border-color: #484f58; background: #30363d; }
+  .hm-title { margin-bottom: 0; }
   .heatmap-legend { display: flex; gap: 14px; font-size: 11px; color: #8b949e; }
   .heatmap-legend span { display: flex; align-items: center; gap: 5px; }
   .hm-box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
@@ -358,11 +352,7 @@
 <!-- Activity heatmap -->
 <div class="chart-card">
   <div class="heatmap-head">
-    <div class="hm-nav">
-      <button class="hm-arrow" id="hmPrev" type="button">←</button>
-      <h2 id="hmTitle">—</h2>
-      <button class="hm-arrow" id="hmNext" type="button">→</button>
-    </div>
+    <h2 class="hm-title">Activity</h2>
     <div class="heatmap-legend">
       <span><i class="hm-box hm-strength"></i> gym</span>
       <span><i class="hm-box hm-run"></i> run</span>
@@ -1007,7 +997,6 @@ async function loadWorkoutLog() {
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let hmYear;
 
 function hmDayDetails(iso) {
   const parts = [];
@@ -1037,44 +1026,55 @@ function hmDayDetails(iso) {
   return parts.length ? parts.join('<hr class="hm-sep">') : '<span style="color:#6e7681;">no activity</span>';
 }
 
+function parseIso(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function renderHeatmap() {
   const el = document.getElementById('heatmap');
   if (!el) return;
-  if (hmYear === undefined) { hmYear = new Date().getFullYear(); }
 
-  document.getElementById('hmTitle').textContent = String(hmYear);
   const strength = new Set(_logSessions.map(s => s.date.slice(0, 10)));
   const runs     = new Set((GARMIN.run_distance || []).map(p => p.x.slice(0, 10)));
 
-  // First Monday on or before Jan 1; last Sunday on or after Dec 31
-  const jan1  = new Date(hmYear, 0, 1);
-  const dec31 = new Date(hmYear, 11, 31);
-  const startDow  = (jan1.getDay()  + 6) % 7;
-  const startDate = new Date(jan1);
+  // Span the full history: earliest activity → today
+  const allIso  = [...strength, ...runs].sort();
+  const today   = new Date();
+  const minDate = allIso.length ? parseIso(allIso[0]) : new Date(today.getFullYear(), 0, 1);
+
+  // First Monday on or before the start; last Sunday on or after today
+  const startDow  = (minDate.getDay() + 6) % 7;
+  const startDate = new Date(minDate);
   startDate.setDate(startDate.getDate() - startDow);
-  const endDow  = (dec31.getDay() + 6) % 7;
-  const endDate = new Date(dec31);
+  const endDow  = (today.getDay() + 6) % 7;
+  const endDate = new Date(today);
   endDate.setDate(endDate.getDate() + (6 - endDow));
 
   const cells = [];
   const weekMonths = [];
   const cur = new Date(startDate);
   let dayInWeek = 0;
-  let lastLabeledMonth = -1;
+  let lastLabeledMonth = -1, lastLabeledYear = -1;
 
   while (cur <= endDate) {
     if (dayInWeek === 0) {
       const m = cur.getMonth(), y = cur.getFullYear();
-      weekMonths.push(y === hmYear && m !== lastLabeledMonth
-        ? (lastLabeledMonth = m, MONTHS_SHORT[m]) : '');
+      if (m !== lastLabeledMonth || y !== lastLabeledYear) {
+        const label = y !== lastLabeledYear ? `${MONTHS_SHORT[m]} ${y}` : MONTHS_SHORT[m];
+        lastLabeledMonth = m; lastLabeledYear = y;
+        weekMonths.push(label);
+      } else {
+        weekMonths.push('');
+      }
     }
     const iso = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
-    if (cur.getFullYear() === hmYear) {
+    if (cur > today) {
+      cells.push(`<div class="hm-cell out"></div>`);
+    } else {
       const s = strength.has(iso), r = runs.has(iso);
       const cls = s && r ? 'b' : s ? 's' : r ? 'r' : '';
       cells.push(`<div class="hm-cell ${cls}" data-iso="${iso}"></div>`);
-    } else {
-      cells.push(`<div class="hm-cell out"></div>`);
     }
     cur.setDate(cur.getDate() + 1);
     dayInWeek = (dayInWeek + 1) % 7;
@@ -1091,20 +1091,15 @@ function renderHeatmap() {
       <div class="hm-gh-grid">${cells.join('')}</div>
     </div>
   </div>`;
-}
 
-function hmShift(delta) {
-  hmYear += delta;
-  renderHeatmap();
+  // Start scrolled to the most recent weeks
+  const outer = el.querySelector('.hm-gh-outer');
+  if (outer) outer.scrollLeft = outer.scrollWidth;
 }
 
 (function initHeatmapUI() {
-  const prev = document.getElementById('hmPrev');
-  const next = document.getElementById('hmNext');
   const tip  = document.getElementById('hmTooltip');
   const grid = document.getElementById('heatmap');
-  if (prev) prev.addEventListener('click', () => hmShift(-1));
-  if (next) next.addEventListener('click', () => hmShift(1));
   if (grid && tip) {
     grid.addEventListener('mouseover', e => {
       const cell = e.target.closest('.hm-cell[data-iso]');
