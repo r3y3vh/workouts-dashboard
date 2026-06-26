@@ -251,6 +251,51 @@
   .advice-card .advice-text { font-size: 14px; color: #c9d1d9; line-height: 1.6; white-space: pre-wrap; }
   .advice-card .advice-meta { font-size: 11px; color: #8b949e; margin-top: 8px; }
 
+  /* ── Activity heatmap (monthly calendar) ──────────────────────── */
+  .heatmap-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .hm-nav { display: flex; align-items: center; gap: 12px; }
+  .hm-nav h2 { margin-bottom: 0; min-width: 150px; text-align: center; }
+  .hm-arrow {
+    width: 30px; height: 30px; border-radius: 6px; border: 1px solid #30363d;
+    background: #21262d; color: #c9d1d9; font-size: 15px; cursor: pointer; line-height: 1;
+  }
+  .hm-arrow:hover { border-color: #484f58; background: #30363d; }
+  .heatmap-legend { display: flex; gap: 14px; font-size: 11px; color: #8b949e; }
+  .heatmap-legend span { display: flex; align-items: center; gap: 5px; }
+  .hm-box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+  .hm-strength { background: #f0883e; }
+  .hm-run { background: #3fb950; }
+  .hm-both { background: #58a6ff; }
+
+  .hm-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 460px; }
+  .hm-wd { font-size: 10px; color: #8b949e; text-align: center; padding-bottom: 2px; }
+  .hm-day {
+    aspect-ratio: 1; border-radius: 5px; background: #161b22; border: 1px solid #21262d;
+    display: flex; align-items: flex-start; justify-content: flex-end;
+    padding: 3px 5px; font-size: 11px; color: #6e7681; cursor: default; transition: transform 0.1s;
+  }
+  .hm-day.empty { visibility: hidden; }
+  .hm-day.s { background: rgba(240,136,62,0.18);  border-color: #f0883e; color: #f0b486; }
+  .hm-day.r { background: rgba(63,185,80,0.18);   border-color: #3fb950; color: #7ee2a0; }
+  .hm-day.b { background: rgba(88,166,255,0.18);  border-color: #58a6ff; color: #9cc7ff; }
+  .hm-day.s:hover, .hm-day.r:hover, .hm-day.b:hover { transform: scale(1.08); }
+  .hm-tooltip {
+    display: none; position: fixed; z-index: 50; pointer-events: none;
+    background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
+    padding: 10px 12px; font-size: 12px; color: #c9d1d9; line-height: 1.5;
+    max-width: 280px; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .hm-tooltip .hm-tip-date { font-size: 11px; color: #8b949e; margin-bottom: 5px; }
+  .hm-tooltip b { color: #e6edf3; }
+  .hm-tooltip .hm-sep { border: none; border-top: 1px solid #21262d; margin: 7px 0; }
+
+  /* ── Collapsible advice ───────────────────────────────────────── */
+  .advice-card .advice-title { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 6px; }
+  .advice-chevron { display: inline-block; transition: transform 0.15s; font-size: 11px; }
+  .advice-card:not(.collapsed) .advice-chevron { transform: rotate(90deg); }
+  .advice-card.collapsed .advice-body { display: none; }
+  .advice-card:not(.collapsed) .advice-title { margin-bottom: 8px; }
+
   footer { text-align: center; font-size: 11px; color: #484f58; margin-top: 24px; padding-top: 16px; border-top: 1px solid #21262d; }
 </style>
 </head>
@@ -261,10 +306,12 @@
   <span class="period">July 2023 — June 2026</span>
 </div>
 
-<div class="advice-card" id="adviceCard" style="display:none;">
-  <div class="advice-title">💡 Совет на следующую тренировку</div>
-  <div class="advice-text" id="adviceText"></div>
-  <div class="advice-meta" id="adviceMeta"></div>
+<div class="advice-card collapsed" id="adviceCard" style="display:none;">
+  <div class="advice-title" id="adviceToggle"><span class="advice-chevron">▸</span> 💡 Совет на следующую тренировку</div>
+  <div class="advice-body">
+    <div class="advice-text" id="adviceText"></div>
+    <div class="advice-meta" id="adviceMeta"></div>
+  </div>
 </div>
 
 <div class="note-banner">
@@ -307,6 +354,24 @@
     <div class="value" style="font-size:18px;padding-top:4px;">Rebuild</div>
     <div class="sub">June 2026</div>
   </div>
+</div>
+
+<!-- Activity heatmap -->
+<div class="chart-card">
+  <div class="heatmap-head">
+    <div class="hm-nav">
+      <button class="hm-arrow" id="hmPrev" type="button">←</button>
+      <h2 id="hmTitle">—</h2>
+      <button class="hm-arrow" id="hmNext" type="button">→</button>
+    </div>
+    <div class="heatmap-legend">
+      <span><i class="hm-box hm-strength"></i> зал</span>
+      <span><i class="hm-box hm-run"></i> бег</span>
+      <span><i class="hm-box hm-both"></i> вместе</span>
+    </div>
+  </div>
+  <div id="heatmap" class="hm-calendar"></div>
+  <div class="hm-tooltip" id="hmTooltip"></div>
 </div>
 
 <!-- Exercise progress selector -->
@@ -354,6 +419,9 @@
     <button class="garmin-btn" data-gm="vo2max">VO₂ max</button>
     <button class="garmin-btn" data-gm="hrv_weekly_avg">HRV (Mar'26+)</button>
     <button class="garmin-btn" data-gm="weight">Weight</button>
+    <button class="garmin-btn" data-gm="run_distance">Бег (км)</button>
+    <button class="garmin-btn" data-gm="run_pace">Темп бега</button>
+    <button class="garmin-btn" data-gm="run_hr">Пульс бега</button>
   </div>
   <div class="period-buttons" id="periodButtons">
     <button class="period-btn active" data-period="day">Daily</button>
@@ -366,70 +434,6 @@
     <canvas id="garminChart"></canvas>
   </div>
   <div class="garmin-stats-row" id="garminStats"></div>
-</div>
-
-<!-- Skills -->
-<div class="milestones-grid">
-  <div class="skill-card">
-    <h2>Skill: Muscle-ups</h2>
-    <ul class="skill-timeline">
-      <li><span class="date">Jul 2023</span><span class="text">Start — blue band ×10</span><span class="badge badge-gray">beginner</span></li>
-      <li><span class="date">Oct 2023</span><span class="text">2 blue bands; pull-ups ×17 clean</span><span class="badge badge-gray">progress</span></li>
-      <li><span class="date">Nov 2023</span><span class="text">Purple band: ×5,5,5,4</span><span class="badge badge-gray">рост</span></li>
-      <li><span class="date">Dec 2023</span><span class="text">No band ×2 — first time!</span><span class="badge badge-green">✓ no band</span></li>
-      <li><span class="date">Jan 2024</span><span class="text">Green ×10, purple ×8, black ×6, red ×4</span><span class="badge badge-blue">solid</span></li>
-      <li><span class="date">Apr 2024</span><span class="text">Black ×15, blue ×7, purple ×6, no band ×1</span><span class="badge badge-blue">varies</span></li>
-      <li><span class="date">Dec 2024</span><span class="text">Session in Tirana — maintenance</span><span class="badge badge-gray">maintain</span></li>
-    </ul>
-  </div>
-  <div class="skill-card">
-    <h2>Skill: Handstand & HSPU</h2>
-    <ul class="skill-timeline">
-      <li><span class="date">Nov 2023</span><span class="text">Handstand ~6 sec, wall push-ups ×6×4</span><span class="badge badge-gray">start</span></li>
-      <li><span class="date">Aug 2024</span><span class="text">Handstand 15 sec — PR! (Tirana)</span><span class="badge badge-orange">PR 15s</span></li>
-      <li><span class="date">Nov 2024</span><span class="text">HS 10s+; negative attempts ×7 (Tirana)</span><span class="badge badge-gray">training</span></li>
-      <li><span class="date">Feb 2025</span><span class="text">Wall HSPU ×8,7,7 + 4 full attempts!</span><span class="badge badge-blue">attempts</span></li>
-      <li><span class="date">Mar 2025</span><span class="text">Wall HSPU 3×8 + negatives 3×3</span><span class="badge badge-blue">regular</span></li>
-      <li><span class="date">Apr 2025</span><span class="text">2 full HSPU! 5+ sessions that month</span><span class="badge badge-green">✓ done!</span></li>
-      <li><span class="date">May 2025+</span><span class="text">HSPU as part of sessions</span><span class="badge badge-green">skill</span></li>
-    </ul>
-  </div>
-</div>
-
-<!-- Events -->
-<div class="events-card">
-  <h2>Key milestones</h2>
-  <ul class="events-list">
-    <li><span class="event-dot dot-blue"></span><span class="event-date">July 2023</span><span class="event-text"><strong>First records.</strong> Squat 95×8, bench 70×5.</span></li>
-    <li><span class="event-dot dot-orange"></span><span class="event-date">Oct 2023</span><span class="event-text"><strong>Squat 110 kg.</strong> Bench 75×5. Pull-ups ×17.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Dec 2023</span><span class="event-text"><strong>13 sessions — monthly record.</strong> First muscle-ups without band ×2.</span></li>
-    <li><span class="event-dot dot-orange"></span><span class="event-date">Jan 2024</span><span class="event-text"><strong>Bench 85×1</strong> — first time over 80 kg.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Feb 2024</span><span class="event-text">2-week break → regressed to 70–75 kg on bench.</span></li>
-    <li><span class="event-dot dot-blue"></span><span class="event-date">Aug 2024</span><span class="event-text"><strong>Moved to Tirana.</strong> Training continues, lighter loads.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Dec 2024</span><span class="event-text">Bansko for New Year, finger injury → short break.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Feb 2025</span><span class="event-text">Back in shape: <strong>bench 85×1</strong> in ~2 months.</span></li>
-    <li><span class="event-dot dot-red"></span><span class="event-date">Apr 2025</span><span class="event-text"><strong>BENCH PR 90 kg!</strong> First full HSPU ×2.</span></li>
-    <li><span class="event-dot dot-blue"></span><span class="event-date">May 2025</span><span class="event-text"><strong>Bench program</strong> (68.86 → 85×2×6). 11 sessions.</span></li>
-    <li><span class="event-dot dot-green"></span><span class="event-date">Jul 2025</span><span class="event-text"><strong>Program completed:</strong> 85×2×6 goal achieved.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Aug–Nov 2025</span><span class="event-text">Long break ~4 months. Back in December.</span></li>
-    <li><span class="event-dot dot-red"></span><span class="event-date">Feb 2026</span><span class="event-text"><strong>SQUAT PR 125×2!</strong> Bench 85×1 recovered fast.</span></li>
-    <li><span class="event-dot dot-yellow"></span><span class="event-date">Mar–May 2026</span><span class="event-text">Break ~2 months. Last entry 06.06.2026.</span></li>
-  </ul>
-</div>
-
-
-<!-- Workout log -->
-<div class="log-card">
-  <div class="log-header">
-    <h2>Workout log</h2>
-    <span id="logLoading" style="font-size:12px;color:#8b949e;">Loading…</span>
-  </div>
-  <div id="logList"></div>
-  <div class="log-pagination" id="logPagination" style="display:none;">
-    <button class="log-pg-btn" id="logPrev" onclick="logPage(-1)">← Prev</button>
-    <span class="log-pg-info" id="logPgInfo"></span>
-    <button class="log-pg-btn" id="logNext" onclick="logPage(1)">Next →</button>
-  </div>
 </div>
 
 <footer>
@@ -675,6 +679,7 @@ let GARMIN = {
   resting_hr: [], body_battery_morning: [], stress_avg: [],
   sleep_score: [], sleep_hours: [], sleep_start_h: [],
   vo2max: [], hrv_weekly_avg: [], steps: [], weight: [],
+  run_distance: [], run_pace: [], run_hr: [],
 };
 
 const _SB_URL = 'https://yozmlmtgagiuyxogxhrf.supabase.co';
@@ -683,7 +688,7 @@ const _sbClient = window.supabase.createClient(_SB_URL, _SB_KEY);
 
 async function loadGarminFromSupabase() {
   // Supabase caps each response at 1000 rows — paginate to get the full history
-  const cols = 'date,resting_hr,body_battery_morning,stress_avg,sleep_score,sleep_hours,sleep_start,hrv_weekly_avg,vo2max,steps,weight';
+  const cols = 'date,resting_hr,body_battery_morning,stress_avg,sleep_score,sleep_hours,sleep_start,hrv_weekly_avg,vo2max,steps,weight,run_distance_km,run_duration_min,run_avg_hr';
   const PAGE = 1000;
   let data = [];
   for (let from = 0; ; from += PAGE) {
@@ -710,6 +715,10 @@ async function loadGarminFromSupabase() {
     if (row.vo2max         != null) GARMIN.vo2max.push({x, y: parseFloat(row.vo2max)});
     if (row.steps          != null) GARMIN.steps.push({x, y: row.steps});
     if (row.weight         != null) GARMIN.weight.push({x, y: parseFloat(row.weight)});
+    if (row.run_distance_km != null) GARMIN.run_distance.push({x, y: parseFloat(row.run_distance_km)});
+    if (row.run_distance_km != null && row.run_duration_min != null && parseFloat(row.run_distance_km) > 0)
+      GARMIN.run_pace.push({x, y: Math.round(parseFloat(row.run_duration_min) / parseFloat(row.run_distance_km) * 100) / 100});
+    if (row.run_avg_hr     != null) GARMIN.run_hr.push({x, y: row.run_avg_hr});
   }
 }
 
@@ -724,6 +733,9 @@ const GARMIN_META = {
   hrv_weekly_avg:       { name:'HRV (weekly avg)',  unit:'ms',     color:'#58a6ff', yMin:50, yMax:100, info:'Heart rate variability — weekly average (ms). Higher = better autonomic recovery. A sharp drop signals to reduce load. Data from March 2026 (Forerunner 970).' },
   steps:                { name:'Steps',                unit:'steps',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Daily step count. WHO recommends 8,000–10,000 steps. A sharp drop may indicate illness or forced rest.' },
   weight:               { name:'Weight',               unit:'kg',       color:'#ffa657', yMin:70, yMax:95,    info:'Body weight from Garmin Connect entries. Watch the trend: slight gain is normal when building strength; sharp swings are water/food. During recomposition weight can stay flat while muscle grows.' },
+  run_distance:         { name:'Бег (км)',             unit:'km',       color:'#3fb950', yMin:0,  yMax:12,    agg:'sum', info:'Дистанция бега. По дням — за каждую пробежку; по неделям/месяцам — суммарный набег за период. Удобно следить за объёмом и постепенным наращиванием километража.' },
+  run_pace:             { name:'Темп бега',            unit:'/km',      color:'#58a6ff', yMin:4,  yMax:9,     fmt:'pace', info:'Средний темп бега (мин/км). Меньше — быстрее. По неделям/месяцам — среднее по пробежкам. Снижение темпа при том же пульсе = рост аэробной формы.' },
+  run_hr:               { name:'Пульс бега',           unit:'bpm',      color:'#f85149', yMin:120, yMax:180,  info:'Средний пульс на пробежках. При одинаковом темпе снижение пульса со временем означает улучшение формы. Высокий пульс на лёгком темпе — усталость или жара.' },
 };
 
 let garminChart = null;
@@ -737,7 +749,14 @@ function sleepHourToLabel(h) {
   return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
 }
 
-function aggregateGarmin(data, period) {
+function paceLabel(v) {
+  // v — минуты/км (десятичные) -> "M:SS"
+  const mm = Math.floor(v);
+  const ss = Math.round((v - mm) * 60);
+  return `${mm}:${String(ss).padStart(2,'0')}`;
+}
+
+function aggregateGarmin(data, period, agg = 'avg') {
   if (period === 'day' || !data.length) return data;
   const groups = {};
   for (const pt of data) {
@@ -757,31 +776,45 @@ function aggregateGarmin(data, period) {
   }
   return Object.entries(groups)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([x, vals]) => ({
-      x,
-      y: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10,
-    }));
+    .map(([x, vals]) => {
+      const sum = vals.reduce((a, b) => a + b, 0);
+      const y = agg === 'sum' ? sum : sum / vals.length;
+      return { x, y: Math.round(y * 10) / 10 };
+    });
 }
 
 function buildGarminStats(key) {
   const data = GARMIN[key];
   if (!data || !data.length) return '<span class="garmin-stat">No data</span>';
   const vals = data.map(d => d.y);
-  const avg = vals.reduce((a,b)=>a+b,0)/vals.length;
-  const mn  = Math.min(...vals);
-  const mx  = Math.max(...vals);
   const meta = GARMIN_META[key];
   const unit = meta.unit ? ' ' + meta.unit : '';
-  let avgStr = avg.toFixed(1) + unit;
-  if (key === 'sleep_start_h') avgStr = sleepHourToLabel(avg);
-  if (key === 'sleep_hours')   avgStr = avg.toFixed(1) + ' ч';
-  let mnStr = mn.toFixed(1)+unit, mxStr = mx.toFixed(1)+unit;
-  if (key === 'sleep_start_h') { mnStr = sleepHourToLabel(mn); mxStr = sleepHourToLabel(mx); }
+  const sum = vals.reduce((a,b)=>a+b,0);
+  const avg = sum / vals.length;
+  const mn  = Math.min(...vals);
+  const mx  = Math.max(...vals);
+
+  // Бег с суммой (дистанция): Всего / Среднее за пробежку / Макс / Пробежек
+  if (meta.agg === 'sum') {
+    return `
+      <div class="garmin-stat">Всего: <strong>${sum.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Средняя: <strong>${avg.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Максимум: <strong>${mx.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Пробежек: <strong>${data.length}</strong></div>
+    `;
+  }
+
+  const fmt = (v) => meta.fmt === 'pace' ? paceLabel(v) + unit
+    : key === 'sleep_start_h' ? sleepHourToLabel(v)
+    : v.toFixed(1) + unit;
+  // для темпа «лучший» = минимум
+  const bestLabel = meta.fmt === 'pace' ? 'Лучший' : 'Максимум';
+  const bestVal   = meta.fmt === 'pace' ? mn : mx;
   return `
-    <div class="garmin-stat">Avg: <strong>${avgStr}</strong></div>
-    <div class="garmin-stat">Min: <strong>${mnStr}</strong></div>
-    <div class="garmin-stat">Max: <strong>${mxStr}</strong></div>
-    <div class="garmin-stat">Days: <strong>${data.length}</strong></div>
+    <div class="garmin-stat">Среднее: <strong>${fmt(avg)}</strong></div>
+    <div class="garmin-stat">${meta.fmt === 'pace' ? 'Худший' : 'Минимум'}: <strong>${fmt(meta.fmt === 'pace' ? mx : mn)}</strong></div>
+    <div class="garmin-stat">${bestLabel}: <strong>${fmt(bestVal)}</strong></div>
+    <div class="garmin-stat">${meta.agg === undefined && (key.startsWith('run')) ? 'Пробежек' : 'Дней'}: <strong>${data.length}</strong></div>
   `;
 }
 
@@ -789,7 +822,7 @@ function applyGarminChart() {
   const key  = currentGm;
   const meta = GARMIN_META[key];
   const raw  = GARMIN[key] || [];
-  const data = aggregateGarmin(raw, currentPeriod);
+  const data = aggregateGarmin(raw, currentPeriod, meta.agg);
 
   // точки: по дням — маленькие, по неделям/месяцам — крупнее
   const ptRadius = currentPeriod === 'day' ? 2 : currentPeriod === 'week' ? 3 : 5;
@@ -813,6 +846,8 @@ function applyGarminChart() {
 
   if (key === 'sleep_start_h') {
     garminChart.options.scales.y.ticks.callback = v => sleepHourToLabel(v);
+  } else if (meta.fmt === 'pace') {
+    garminChart.options.scales.y.ticks.callback = v => paceLabel(v) + ' /km';
   } else {
     const unit = meta.unit;
     garminChart.options.scales.y.ticks.callback = v => unit ? v + ' ' + unit : v;
@@ -871,10 +906,11 @@ garminChart = new Chart(document.getElementById('garminChart'), {
       tooltip: {
         callbacks: {
           label: ctx => {
-            const aggData = aggregateGarmin(GARMIN[currentGm] || [], currentPeriod);
-            const d = aggData[ctx.dataIndex];
             const meta = GARMIN_META[currentGm];
+            const aggData = aggregateGarmin(GARMIN[currentGm] || [], currentPeriod, meta.agg);
+            const d = aggData[ctx.dataIndex];
             if (currentGm === 'sleep_start_h') return 'Bedtime: ' + (d && d.label ? d.label : sleepHourToLabel(ctx.parsed.y));
+            if (meta.fmt === 'pace') return meta.name + ': ' + paceLabel(ctx.parsed.y) + ' /km';
             return meta.name + ': ' + ctx.parsed.y + (meta.unit ? ' ' + meta.unit : '');
           },
         },
@@ -906,16 +942,15 @@ if (_garminLoading) _garminLoading.style.display = 'block';
 loadGarminFromSupabase().then(() => {
   if (_garminLoading) _garminLoading.style.display = 'none';
   switchGarmin('resting_hr');
+  renderHeatmap();
 }).catch(err => {
   if (_garminLoading) _garminLoading.textContent = 'Ошибка загрузки данных';
   console.error(err);
 });
 
-// ─── WORKOUT LOG ──────────────────────────────────────────────────────────────
+// ─── SESSIONS (for freq chart + heatmap) ──────────────────────────────────────
 
 let _logSessions = [];
-let _logPage = 0;
-const LOG_PAGE_SIZE = 5;
 
 function updateFreqChart(sessions) {
   // count sessions per month from Supabase
@@ -952,78 +987,105 @@ async function loadWorkoutLog() {
     .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup, created_at)')
     .order('date', { ascending: false })
     .order('created_at', { referencedTable: 'sets', ascending: true })
-    .limit(200);
+    .limit(500);
 
-  document.getElementById('logLoading').style.display = 'none';
-  if (error || !data) { console.error('Log load error:', error); return; }
+  if (error || !data) { console.error('Sessions load error:', error); return; }
 
   _logSessions = data;
   updateFreqChart(data);
-  renderLog();
+  renderHeatmap();
 }
 
-function renderLog() {
-  const list = document.getElementById('logList');
-  const pagination = document.getElementById('logPagination');
-  const total = _logSessions.length;
+// ─── ACTIVITY HEATMAP (monthly calendar) ──────────────────────────────────────
 
-  if (total === 0) {
-    list.innerHTML = '<div class="log-empty">No sessions yet</div>';
-    return;
-  }
+const RU_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+let hmYear, hmMonth;
 
-  const start = _logPage * LOG_PAGE_SIZE;
-  const slice = _logSessions.slice(start, start + LOG_PAGE_SIZE);
-
-  list.innerHTML = slice.map(s => {
-    // group sets by exercise
+function hmDayDetails(iso) {
+  const parts = [];
+  // силовые сессии этого дня
+  for (const s of _logSessions.filter(x => x.date === iso)) {
     const byEx = {};
-    (s.sets || []).forEach(set => {
-      if (!byEx[set.exercise]) byEx[set.exercise] = [];
-      byEx[set.exercise].push(set);
+    (s.sets || []).forEach(st => {
+      const cur = byEx[st.exercise];
+      if (!cur || (st.weight || 0) > cur.w) byEx[st.exercise] = { w: st.weight, r: st.reps };
     });
-
-    const exHtml = Object.entries(byEx).map(([ex, sets]) => {
-      const pills = sets.map(st => {
-        const w = st.weight != null ? st.weight + ' kg' : '';
-        const r = st.reps != null ? '×' + st.reps : '';
-        const n = st.sets_count != null && st.sets_count > 1 ? st.sets_count + '×' : '';
-        const label = (n + (w ? w : '') + r) || st.raw_line || '—';
-        return `<span class="log-pill${st.is_warmup ? ' warmup' : ''}">${label}</span>`;
-      }).join('');
-      return `<div class="log-exercise">
-        <div class="log-exercise-name">${ex}</div>
-        <div class="log-set-pills">${pills}</div>
-      </div>`;
-    }).join('');
-
-    const typeTag = s.type ? `<span class="log-type">${s.type}</span>` : '';
-    const notesTag = s.notes ? `<span class="log-notes">${s.notes}</span>` : '';
-
-    return `<div class="log-session">
-      <div class="log-session-head">
-        <span class="log-date">${s.date}</span>
-        ${typeTag}${notesTag}
-      </div>
-      <div class="log-sets">${exHtml || '<span style="color:#8b949e;font-size:12px;">No sets recorded</span>'}</div>
-    </div>`;
-  }).join('');
-
-  // pagination
-  const totalPages = Math.ceil(total / LOG_PAGE_SIZE);
-  if (totalPages > 1) {
-    pagination.style.display = 'flex';
-    document.getElementById('logPgInfo').textContent = `${start + 1}–${Math.min(start + LOG_PAGE_SIZE, total)} of ${total}`;
-    document.getElementById('logPrev').disabled = _logPage === 0;
-    document.getElementById('logNext').disabled = _logPage >= totalPages - 1;
+    const exLines = Object.entries(byEx).map(([ex, v]) => {
+      const w = v.w != null ? v.w + 'кг' : '';
+      const r = v.r ? '×' + v.r : '';
+      return `${ex} ${w}${r}`.trim();
+    });
+    parts.push(`<b>🏋️ ${s.type || 'силовая'}</b><br>` + (exLines.join('<br>') || '—'));
   }
+  // бег этого дня
+  const rd = (GARMIN.run_distance || []).find(p => p.x === iso);
+  if (rd) {
+    const pace = (GARMIN.run_pace || []).find(p => p.x === iso);
+    const hr   = (GARMIN.run_hr || []).find(p => p.x === iso);
+    let line = `<b>🏃 Бег ${rd.y} км</b>`;
+    if (pace) line += ` · ${paceLabel(pace.y)}/км`;
+    if (hr)   line += ` · ${hr.y} bpm`;
+    parts.push(line);
+  }
+  return parts.length ? parts.join('<hr class="hm-sep">') : '<span style="color:#6e7681;">нет активности</span>';
 }
 
-function logPage(dir) {
-  _logPage += dir;
-  renderLog();
-  document.getElementById('logList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function renderHeatmap() {
+  const el = document.getElementById('heatmap');
+  if (!el) return;
+  if (hmYear === undefined) { const t = new Date(); hmYear = t.getFullYear(); hmMonth = t.getMonth(); }
+
+  document.getElementById('hmTitle').textContent = `${RU_MONTHS[hmMonth]} ${hmYear}`;
+  const strength = new Set(_logSessions.map(s => s.date));
+  const runs     = new Set((GARMIN.run_distance || []).map(p => p.x));
+
+  const wd = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  let html = wd.map(d => `<div class="hm-wd">${d}</div>`).join('');
+
+  const first = new Date(hmYear, hmMonth, 1);
+  const lead  = (first.getDay() + 6) % 7;             // Пн = 0
+  for (let i = 0; i < lead; i++) html += '<div class="hm-day empty"></div>';
+
+  const days = new Date(hmYear, hmMonth + 1, 0).getDate();
+  for (let dd = 1; dd <= days; dd++) {
+    const iso = `${hmYear}-${String(hmMonth+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    const s = strength.has(iso), r = runs.has(iso);
+    const cls = s && r ? 'b' : s ? 's' : r ? 'r' : '';
+    html += `<div class="hm-day ${cls}" data-iso="${iso}">${dd}</div>`;
+  }
+  el.innerHTML = html;
 }
+
+function hmShift(delta) {
+  hmMonth += delta;
+  if (hmMonth < 0)  { hmMonth = 11; hmYear--; }
+  if (hmMonth > 11) { hmMonth = 0;  hmYear++; }
+  renderHeatmap();
+}
+
+(function initHeatmapUI() {
+  const prev = document.getElementById('hmPrev');
+  const next = document.getElementById('hmNext');
+  const tip  = document.getElementById('hmTooltip');
+  const grid = document.getElementById('heatmap');
+  if (prev) prev.addEventListener('click', () => hmShift(-1));
+  if (next) next.addEventListener('click', () => hmShift(1));
+  if (grid && tip) {
+    grid.addEventListener('mouseover', e => {
+      const cell = e.target.closest('.hm-day[data-iso]');
+      if (!cell) return;
+      tip.innerHTML = `<div class="hm-tip-date">${cell.dataset.iso}</div>` + hmDayDetails(cell.dataset.iso);
+      tip.style.display = 'block';
+    });
+    grid.addEventListener('mousemove', e => {
+      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 290) + 'px';
+      tip.style.top  = (e.clientY + 14) + 'px';
+    });
+    grid.addEventListener('mouseout', e => {
+      if (e.target.closest('.hm-day')) tip.style.display = 'none';
+    });
+  }
+})();
 
 
 // ─── EXERCISE DATA FROM SUPABASE ──────────────────────────────────────────────
@@ -1092,6 +1154,11 @@ async function loadAdvice() {
   document.getElementById('adviceMeta').textContent = meta;
   document.getElementById('adviceCard').style.display = 'block';
 }
+
+// Совет: сворачивание/разворачивание по клику на заголовок
+document.getElementById('adviceToggle').addEventListener('click', () => {
+  document.getElementById('adviceCard').classList.toggle('collapsed');
+});
 
 loadAdvice();
 
