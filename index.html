@@ -518,6 +518,14 @@ function hexAlpha(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
+// Category-axis label for the Run km histogram bars
+function runBarLabel(iso, period) {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return period === 'month'
+    ? `${MONTHS_SHORT[m-1]} '${String(y).slice(2)}`
+    : `${MONTHS_SHORT[m-1]} ${d}`;
+}
+
 function buildRunStats(exKey) {
   const data = GARMIN[exKey] || [];
   if (!data.length) return '<span class="ex-stat">Loading…</span>';
@@ -566,20 +574,28 @@ function switchExercise(exKey) {
 
   if (!exChart) return;
 
+  const isBar = exKey === 'run_distance';
   const ptColors = isRun ? data.map(() => color) : buildPointColors(exKey, data);
-  exChart.data.datasets[0].data = data;
-  exChart.data.datasets[0].borderColor = color;
-  exChart.data.datasets[0].backgroundColor = hexAlpha(color, 0.08);
-  exChart.data.datasets[0].pointBackgroundColor = ptColors;
-  exChart.data.datasets[0].pointBorderColor = ptColors;
-  exChart.data.datasets[0].label = isRun ? meta.name : ex.name;
+  const ds = exChart.data.datasets[0];
+  ds.type = isBar ? 'bar' : 'line';
+  // Bars use an evenly-spaced category axis (a time axis makes sparse runs hair-thin)
+  exChart.options.scales.x.type = isBar ? 'category' : 'time';
+  exChart.data.labels = isBar ? data.map(d => runBarLabel(d.x, currentRunPeriod)) : [];
+  ds.data = isBar ? data.map(d => d.y) : data;
+  ds.borderColor = color;
+  ds.backgroundColor = isBar ? hexAlpha(color, 0.7) : hexAlpha(color, 0.08);
+  ds.pointBackgroundColor = ptColors;
+  ds.pointBorderColor = ptColors;
+  ds.borderRadius = isBar ? 3 : 0;
+  ds.maxBarThickness = 48;
+  ds.label = isRun ? meta.name : ex.name;
 
   if (data.length) {
     const ys = data.map(d => d.y);
     const lo = Math.min(...ys), hi = Math.max(...ys);
     const roundUnit = exKey === 'run_pace' ? 0.5 : isRun ? 1 : 5;
     const pad = Math.max(roundUnit, (hi - lo) * 0.15);
-    exChart.options.scales.y.min = Math.floor((lo - pad) / roundUnit) * roundUnit;
+    exChart.options.scales.y.min = isBar ? 0 : Math.floor((lo - pad) / roundUnit) * roundUnit;
     exChart.options.scales.y.max = Math.ceil((hi + pad) / roundUnit) * roundUnit;
   } else {
     exChart.options.scales.y.min = isRun ? meta.yMin : ex.yMin;
