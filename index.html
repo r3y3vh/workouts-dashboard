@@ -91,11 +91,9 @@
     white-space: nowrap;
   }
   .ex-btn:hover { border-color: #484f58; color: #c9d1d9; }
-  .ex-btn.active {
-    color: #0d1117;
-    border-color: transparent;
-    font-weight: 600;
-  }
+  .ex-btn.active { color: #0d1117; border-color: transparent; font-weight: 600; }
+  .ex-sep { display: inline-block; width: 1px; background: #30363d; align-self: stretch; margin: 0 4px; }
+  .run-period-row { display: flex; gap: 6px; margin-bottom: 12px; }
 
   .chart-container { position: relative; height: 280px; }
   .chart-container.medium { height: 200px; }
@@ -267,18 +265,19 @@
   .hm-run { background: #3fb950; }
   .hm-both { background: #58a6ff; }
 
-  .hm-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; max-width: 460px; }
-  .hm-wd { font-size: 10px; color: #8b949e; text-align: center; padding-bottom: 2px; }
-  .hm-day {
-    aspect-ratio: 1; border-radius: 5px; background: #161b22; border: 1px solid #21262d;
-    display: flex; align-items: flex-start; justify-content: flex-end;
-    padding: 3px 5px; font-size: 11px; color: #6e7681; cursor: default; transition: transform 0.1s;
-  }
-  .hm-day.empty { visibility: hidden; }
-  .hm-day.s { background: rgba(240,136,62,0.18);  border-color: #f0883e; color: #f0b486; }
-  .hm-day.r { background: rgba(63,185,80,0.18);   border-color: #3fb950; color: #7ee2a0; }
-  .hm-day.b { background: rgba(88,166,255,0.18);  border-color: #58a6ff; color: #9cc7ff; }
-  .hm-day.s:hover, .hm-day.r:hover, .hm-day.b:hover { transform: scale(1.08); }
+  .hm-gh-outer { display: flex; align-items: flex-start; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .hm-wd-col { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: #8b949e; padding-top: 18px; flex-shrink: 0; }
+  .hm-wd-col span { height: 11px; line-height: 11px; white-space: nowrap; }
+  .hm-gh-right { display: flex; flex-direction: column; gap: 4px; }
+  .hm-month-row { display: grid; grid-auto-flow: column; grid-auto-columns: 11px; gap: 2px; font-size: 10px; color: #8b949e; height: 14px; }
+  .hm-ml { white-space: nowrap; overflow: visible; line-height: 14px; }
+  .hm-gh-grid { display: grid; grid-template-rows: repeat(7, 11px); grid-auto-flow: column; grid-auto-columns: 11px; gap: 2px; }
+  .hm-cell { width: 11px; height: 11px; border-radius: 2px; background: #161b22; cursor: default; }
+  .hm-cell.out { background: transparent; }
+  .hm-cell.s { background: rgba(240,136,62,0.85); }
+  .hm-cell.r { background: rgba(63,185,80,0.85); }
+  .hm-cell.b { background: rgba(88,166,255,0.85); }
+  .hm-cell[data-iso]:hover { opacity: 0.7; outline: 1px solid #c9d1d9; outline-offset: 1px; cursor: pointer; }
   .hm-tooltip {
     display: none; position: fixed; z-index: 50; pointer-events: none;
     background: #0d1117; border: 1px solid #30363d; border-radius: 8px;
@@ -302,12 +301,12 @@
 <body>
 
 <div class="header">
-  <h1>Тренировочный дашборд</h1>
+  <h1>Workout Dashboard</h1>
   <span class="period">July 2023 — June 2026</span>
 </div>
 
 <div class="advice-card collapsed" id="adviceCard" style="display:none;">
-  <div class="advice-title" id="adviceToggle"><span class="advice-chevron">▸</span> 💡 Совет на следующую тренировку</div>
+  <div class="advice-title" id="adviceToggle"><span class="advice-chevron">▸</span> 💡 Next workout tip</div>
   <div class="advice-body">
     <div class="advice-text" id="adviceText"></div>
     <div class="advice-meta" id="adviceMeta"></div>
@@ -331,8 +330,8 @@
   </div>
   <div class="stat-card">
     <div class="label">Most active month</div>
-    <div class="value">Май '25</div>
-    <div class="sub">11 sessions</div>
+    <div class="value" id="mostActiveVal">—</div>
+    <div class="sub" id="mostActiveSub"></div>
   </div>
   <div class="stat-card pr">
     <div class="label">DB Bench PR</div>
@@ -365,9 +364,9 @@
       <button class="hm-arrow" id="hmNext" type="button">→</button>
     </div>
     <div class="heatmap-legend">
-      <span><i class="hm-box hm-strength"></i> зал</span>
-      <span><i class="hm-box hm-run"></i> бег</span>
-      <span><i class="hm-box hm-both"></i> вместе</span>
+      <span><i class="hm-box hm-strength"></i> gym</span>
+      <span><i class="hm-box hm-run"></i> run</span>
+      <span><i class="hm-box hm-both"></i> both</span>
     </div>
   </div>
   <div id="heatmap" class="hm-calendar"></div>
@@ -377,7 +376,7 @@
 <!-- Exercise progress selector -->
 <div class="exercise-card">
   <div class="exercise-header">
-    <h2>Exercise progress</h2>
+    <h2>Progress</h2>
     <span class="ex-info" id="exInfo">peak weight per session, kg</span>
   </div>
 
@@ -385,6 +384,15 @@
     <button class="ex-btn active" data-ex="dumbbell_bench">DB Bench</button>
     <button class="ex-btn" data-ex="squat">Squat</button>
     <button class="ex-btn" data-ex="deadlift">Deadlift</button>
+    <span class="ex-sep"></span>
+    <button class="ex-btn" data-ex="run_distance">Run km</button>
+    <button class="ex-btn" data-ex="run_pace">Run Pace</button>
+    <button class="ex-btn" data-ex="run_hr">Run HR</button>
+  </div>
+  <div class="run-period-row" id="runPeriodRow" style="display:none">
+    <button class="period-btn active" data-run-period="day">Daily</button>
+    <button class="period-btn" data-run-period="week">Weekly</button>
+    <button class="period-btn" data-run-period="month">Monthly</button>
   </div>
 
   <div class="chart-container">
@@ -393,15 +401,6 @@
 
   <div class="ex-stats-row" id="exStatsRow"></div>
 </div>
-
-<!-- Frequency -->
-<div class="chart-card">
-  <h2>Monthly workout frequency</h2>
-  <div class="chart-container medium">
-    <canvas id="freqChart"></canvas>
-  </div>
-</div>
-
 
 <!-- Garmin Recovery -->
 <div class="garmin-card">
@@ -419,9 +418,6 @@
     <button class="garmin-btn" data-gm="vo2max">VO₂ max</button>
     <button class="garmin-btn" data-gm="hrv_weekly_avg">HRV (Mar'26+)</button>
     <button class="garmin-btn" data-gm="weight">Weight</button>
-    <button class="garmin-btn" data-gm="run_distance">Бег (км)</button>
-    <button class="garmin-btn" data-gm="run_pace">Темп бега</button>
-    <button class="garmin-btn" data-gm="run_hr">Пульс бега</button>
   </div>
   <div class="period-buttons" id="periodButtons">
     <button class="period-btn active" data-period="day">Daily</button>
@@ -494,6 +490,7 @@ const PR_THRESHOLDS = { dumbbell_bench:30, squat:120, deadlift:90 };
 
 let exChart = null;
 let currentEx = 'dumbbell_bench';
+let currentRunPeriod = 'day';
 
 function buildPointColors(exKey, data) {
   const threshold = PR_THRESHOLDS[exKey] || 999;
@@ -526,41 +523,90 @@ function buildExStats(exKey) {
   return html;
 }
 
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function buildRunStats(exKey) {
+  const data = GARMIN[exKey] || [];
+  if (!data.length) return '<span class="ex-stat">Loading…</span>';
+  const meta = GARMIN_META[exKey];
+  const ys = data.map(d => d.y);
+  const last = data[data.length - 1];
+  function fmtDate(iso) { const [y,m] = iso.split('-'); return `${MONTHS_SHORT[+m-1]} ${y}`; }
+  function fmtVal(v) { return meta.fmt === 'pace' ? paceLabel(v) + '/km' : `${v.toFixed(exKey === 'run_distance' ? 1 : 0)} ${meta.unit}`; }
+
+  if (exKey === 'run_distance') {
+    const total = ys.reduce((a,b)=>a+b,0), avg = total/ys.length;
+    return `<div class="ex-stat">Total: <strong>${total.toFixed(1)} km</strong></div>
+            <div class="ex-stat">Avg: <strong>${avg.toFixed(1)} km</strong></div>
+            <div class="ex-stat">Longest: <strong>${Math.max(...ys).toFixed(1)} km</strong></div>
+            <div class="ex-stat">Runs: <strong>${data.length}</strong></div>`;
+  }
+  const avg = ys.reduce((a,b)=>a+b,0) / ys.length;
+  const best = meta.fmt === 'pace' ? Math.min(...ys) : Math.max(...ys);
+  return `<div class="ex-stat">Avg: <strong>${fmtVal(avg)}</strong></div>
+          <div class="ex-stat">Best: <strong>${fmtVal(best)}</strong></div>
+          <div class="ex-stat">Last (${fmtDate(last.x)}): <strong>${fmtVal(last.y)}</strong></div>
+          <div class="ex-stat">Runs: <strong>${data.length}</strong></div>`;
+}
+
 function switchExercise(exKey) {
   currentEx = exKey;
-  const ex = EXERCISES[exKey];
+  const isRun = exKey.startsWith('run_');
+  const meta  = isRun ? GARMIN_META[exKey] : null;
+  const ex    = isRun ? null : EXERCISES[exKey];
+  const rawData = isRun ? (GARMIN[exKey] || []) : (ex ? ex.data : []);
+  const data  = isRun ? aggregateGarmin(rawData, currentRunPeriod, meta.agg) : rawData;
+  const color = isRun ? meta.color : ex.color;
 
-  // Update button styles
+  // Show/hide run period selector
+  const periodRow = document.getElementById('runPeriodRow');
+  if (periodRow) periodRow.style.display = isRun ? 'flex' : 'none';
+
   document.querySelectorAll('.ex-btn').forEach(btn => {
     const active = btn.dataset.ex === exKey;
     btn.classList.toggle('active', active);
-    btn.style.background = active ? ex.color : '';
+    btn.style.background = active ? color : '';
   });
 
-  document.getElementById('exInfo').textContent = ex.info;
-  document.getElementById('exStatsRow').innerHTML = buildExStats(exKey);
+  document.getElementById('exInfo').textContent = isRun ? meta.info : ex.info;
+  document.getElementById('exStatsRow').innerHTML = isRun ? buildRunStats(exKey) : buildExStats(exKey);
 
-  if (exChart) {
-    const colors = buildPointColors(exKey, ex.data);
-    exChart.data.datasets[0].data = ex.data;
-    exChart.data.datasets[0].borderColor = ex.color;
-    exChart.data.datasets[0].backgroundColor = ex.bgColor;
-    exChart.data.datasets[0].pointBackgroundColor = colors;
-    exChart.data.datasets[0].pointBorderColor = colors;
-    exChart.data.datasets[0].label = ex.name;
-    // Auto-scale Y to the actual data with padding
-    if (ex.data.length) {
-      const ys = ex.data.map(d => d.y);
-      const lo = Math.min(...ys), hi = Math.max(...ys);
-      const pad = Math.max(5, (hi - lo) * 0.15);
-      exChart.options.scales.y.min = Math.floor((lo - pad) / 5) * 5;
-      exChart.options.scales.y.max = Math.ceil((hi + pad) / 5) * 5;
-    } else {
-      exChart.options.scales.y.min = ex.yMin;
-      exChart.options.scales.y.max = ex.yMax;
-    }
-    exChart.update();
+  if (!exChart) return;
+
+  const ptColors = isRun ? data.map(() => color) : buildPointColors(exKey, data);
+  exChart.data.datasets[0].data = data;
+  exChart.data.datasets[0].borderColor = color;
+  exChart.data.datasets[0].backgroundColor = hexAlpha(color, 0.08);
+  exChart.data.datasets[0].pointBackgroundColor = ptColors;
+  exChart.data.datasets[0].pointBorderColor = ptColors;
+  exChart.data.datasets[0].label = isRun ? meta.name : ex.name;
+
+  if (data.length) {
+    const ys = data.map(d => d.y);
+    const lo = Math.min(...ys), hi = Math.max(...ys);
+    const roundUnit = exKey === 'run_pace' ? 0.5 : isRun ? 1 : 5;
+    const pad = Math.max(roundUnit, (hi - lo) * 0.15);
+    exChart.options.scales.y.min = Math.floor((lo - pad) / roundUnit) * roundUnit;
+    exChart.options.scales.y.max = Math.ceil((hi + pad) / roundUnit) * roundUnit;
+  } else {
+    exChart.options.scales.y.min = isRun ? meta.yMin : ex.yMin;
+    exChart.options.scales.y.max = isRun ? meta.yMax : ex.yMax;
   }
+  // X-axis time unit
+  const xUnit = isRun
+    ? (currentRunPeriod === 'month' ? 'month' : currentRunPeriod === 'week' ? 'week' : 'day')
+    : 'month';
+  exChart.options.scales.x.time.unit = xUnit;
+  exChart.options.scales.x.time.displayFormats = xUnit === 'day'
+    ? { day: 'MMM d' }
+    : xUnit === 'week'
+    ? { week: 'MMM d' }
+    : { month: 'MMM yy' };
+
+  exChart.update();
 }
 
 // Init exercise chart
@@ -590,8 +636,14 @@ exChart = new Chart(document.getElementById('exChart'), {
       tooltip: {
         callbacks: {
           label: ctx => {
+            if (currentEx && currentEx.startsWith('run_')) {
+              const m = GARMIN_META[currentEx];
+              if (m && m.fmt === 'pace') return paceLabel(ctx.parsed.y) + '/km';
+              return `${ctx.parsed.y} ${m ? m.unit : ''}`;
+            }
             const ex = EXERCISES[currentEx];
-            const d = ex.data[ctx.dataIndex];
+            const d = ex ? ex.data[ctx.dataIndex] : null;
+            if (!d) return `${ctx.parsed.y}`;
             const repsStr = d.reps ? (d.sets_count && d.sets_count > 1 ? `${d.sets_count}×${d.reps}` : `×${d.reps}`) : '';
             const base = repsStr ? `${ctx.parsed.y} kg ${repsStr}` : `${ctx.parsed.y} kg`;
             return d.note ? `${base} — ${d.note}` : base;
@@ -607,72 +659,36 @@ exChart = new Chart(document.getElementById('exChart'), {
       },
       y: {
         min: initEx.yMin, max: initEx.yMax,
-        ticks: { stepSize:10, callback: v => v+' kg' },
+        ticks: { callback: v => {
+          if (currentEx && currentEx.startsWith('run_')) {
+            const m = GARMIN_META[currentEx];
+            if (m && m.fmt === 'pace') return paceLabel(v);
+            return v + (m && m.unit ? ' ' + m.unit : '');
+          }
+          return v + ' kg';
+        }},
         grid: { color:'#21262d' },
       },
     },
   },
 });
 
-// Button listeners
-document.querySelectorAll('.ex-btn').forEach(btn => {
+document.querySelectorAll('.ex-btn[data-ex]').forEach(btn => {
   btn.addEventListener('click', () => switchExercise(btn.dataset.ex));
+});
+
+document.querySelectorAll('[data-run-period]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentRunPeriod = btn.dataset.runPeriod;
+    document.querySelectorAll('[data-run-period]').forEach(b => b.classList.toggle('active', b === btn));
+    switchExercise(currentEx);
+  });
 });
 
 // Init stats
 // switchExercise called after loadExerciseData populates data
 
 // ─── FREQUENCY CHART ─────────────────────────────────────────────────────────
-
-const freqChart = new Chart(document.getElementById('freqChart'), {
-  type: 'bar',
-  data: {
-    labels: freqData.map(d => d.x),
-    datasets: [{
-      label: 'Sessions',
-      data: freqData.map(d => d.y),
-      backgroundColor: freqData.map(d => d.y >= 10 ? '#f0883e' : d.y >= 7 ? '#3fb950' : d.y >= 4 ? '#388bfd' : '#1f4068'),
-      borderRadius: 4,
-      borderSkipped: false,
-    }],
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          title: ctx => {
-            const [yr, mo] = ctx[0].label.split('-');
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            return `${months[+mo-1]} ${yr}`;
-          },
-          label: ctx => `${ctx.parsed.y} sessions`,
-        },
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          font: { size: 11 },
-          maxRotation: 45,
-          callback(val, idx) {
-            const [yr, mo] = freqData[idx].x.split('-');
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            return `${months[+mo-1]} '${yr.slice(2)}`;
-          },
-        },
-      },
-      y: {
-        min: 0, max: 13,
-        ticks: { stepSize: 2 },
-        grid: { color: '#21262d' },
-      },
-    },
-  },
-});
 
 // ─── GARMIN DATA ──────────────────────────────────────────────────────────────
 let GARMIN = {
@@ -733,9 +749,9 @@ const GARMIN_META = {
   hrv_weekly_avg:       { name:'HRV (weekly avg)',  unit:'ms',     color:'#58a6ff', yMin:50, yMax:100, info:'Heart rate variability — weekly average (ms). Higher = better autonomic recovery. A sharp drop signals to reduce load. Data from March 2026 (Forerunner 970).' },
   steps:                { name:'Steps',                unit:'steps',    color:'#79c0ff', yMin:0,  yMax:25000, info:'Daily step count. WHO recommends 8,000–10,000 steps. A sharp drop may indicate illness or forced rest.' },
   weight:               { name:'Weight',               unit:'kg',       color:'#ffa657', yMin:70, yMax:95,    info:'Body weight from Garmin Connect entries. Watch the trend: slight gain is normal when building strength; sharp swings are water/food. During recomposition weight can stay flat while muscle grows.' },
-  run_distance:         { name:'Бег (км)',             unit:'km',       color:'#3fb950', yMin:0,  yMax:12,    agg:'sum', info:'Дистанция бега. По дням — за каждую пробежку; по неделям/месяцам — суммарный набег за период. Удобно следить за объёмом и постепенным наращиванием километража.' },
-  run_pace:             { name:'Темп бега',            unit:'/km',      color:'#58a6ff', yMin:4,  yMax:9,     fmt:'pace', info:'Средний темп бега (мин/км). Меньше — быстрее. По неделям/месяцам — среднее по пробежкам. Снижение темпа при том же пульсе = рост аэробной формы.' },
-  run_hr:               { name:'Пульс бега',           unit:'bpm',      color:'#f85149', yMin:120, yMax:180,  info:'Средний пульс на пробежках. При одинаковом темпе снижение пульса со временем означает улучшение формы. Высокий пульс на лёгком темпе — усталость или жара.' },
+  run_distance:         { name:'Run distance',          unit:'km',       color:'#3fb950', yMin:0,  yMax:12,    agg:'sum', info:'Running distance. Per day = each run; per week/month = total volume. Track gradual mileage buildup.' },
+  run_pace:             { name:'Run pace',              unit:'/km',      color:'#58a6ff', yMin:4,  yMax:9,     fmt:'pace', info:'Average running pace (min/km). Lower = faster. Per week/month = average across runs. Pace dropping at the same HR = improved aerobic fitness.' },
+  run_hr:               { name:'Run HR',                unit:'bpm',      color:'#f85149', yMin:120, yMax:180,  info:'Average heart rate on runs. HR declining at the same pace over time = improving fitness. High HR at easy pace = fatigue or heat.' },
 };
 
 let garminChart = null;
@@ -797,10 +813,10 @@ function buildGarminStats(key) {
   // Бег с суммой (дистанция): Всего / Среднее за пробежку / Макс / Пробежек
   if (meta.agg === 'sum') {
     return `
-      <div class="garmin-stat">Всего: <strong>${sum.toFixed(1)}${unit}</strong></div>
-      <div class="garmin-stat">Средняя: <strong>${avg.toFixed(1)}${unit}</strong></div>
-      <div class="garmin-stat">Максимум: <strong>${mx.toFixed(1)}${unit}</strong></div>
-      <div class="garmin-stat">Пробежек: <strong>${data.length}</strong></div>
+      <div class="garmin-stat">Total: <strong>${sum.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Avg per run: <strong>${avg.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Max: <strong>${mx.toFixed(1)}${unit}</strong></div>
+      <div class="garmin-stat">Runs: <strong>${data.length}</strong></div>
     `;
   }
 
@@ -808,13 +824,13 @@ function buildGarminStats(key) {
     : key === 'sleep_start_h' ? sleepHourToLabel(v)
     : v.toFixed(1) + unit;
   // для темпа «лучший» = минимум
-  const bestLabel = meta.fmt === 'pace' ? 'Лучший' : 'Максимум';
+  const bestLabel = meta.fmt === 'pace' ? 'Best' : 'Max';
   const bestVal   = meta.fmt === 'pace' ? mn : mx;
   return `
-    <div class="garmin-stat">Среднее: <strong>${fmt(avg)}</strong></div>
-    <div class="garmin-stat">${meta.fmt === 'pace' ? 'Худший' : 'Минимум'}: <strong>${fmt(meta.fmt === 'pace' ? mx : mn)}</strong></div>
+    <div class="garmin-stat">Avg: <strong>${fmt(avg)}</strong></div>
+    <div class="garmin-stat">${meta.fmt === 'pace' ? 'Worst' : 'Min'}: <strong>${fmt(meta.fmt === 'pace' ? mx : mn)}</strong></div>
     <div class="garmin-stat">${bestLabel}: <strong>${fmt(bestVal)}</strong></div>
-    <div class="garmin-stat">${meta.agg === undefined && (key.startsWith('run')) ? 'Пробежек' : 'Дней'}: <strong>${data.length}</strong></div>
+    <div class="garmin-stat">${meta.agg === undefined && key.startsWith('run') ? 'Runs' : 'Days'}: <strong>${data.length}</strong></div>
   `;
 }
 
@@ -943,63 +959,55 @@ loadGarminFromSupabase().then(() => {
   if (_garminLoading) _garminLoading.style.display = 'none';
   switchGarmin('resting_hr');
   renderHeatmap();
+  if (currentEx && currentEx.startsWith('run_')) switchExercise(currentEx);
 }).catch(err => {
-  if (_garminLoading) _garminLoading.textContent = 'Ошибка загрузки данных';
+  if (_garminLoading) _garminLoading.textContent = 'Failed to load data';
   console.error(err);
 });
 
 // ─── SESSIONS (for freq chart + heatmap) ──────────────────────────────────────
 
 let _logSessions = [];
-
 function updateFreqChart(sessions) {
-  // count sessions per month from Supabase
-  const sbCounts = {};
+  // Most active month
+  const monthly = {};
   sessions.forEach(s => {
-    const mo = s.date.slice(0, 7); // 'YYYY-MM'
-    sbCounts[mo] = (sbCounts[mo] || 0) + 1;
+    const mo = s.date.slice(0, 7);
+    monthly[mo] = (monthly[mo] || 0) + 1;
   });
-
-  // merge with hardcoded freqData: replace/add months from Supabase
-  const merged = {};
-  freqData.forEach(d => { merged[d.x] = d.y; });
-  Object.entries(sbCounts).forEach(([mo, cnt]) => { merged[mo] = cnt; });
-
-  const sorted = Object.entries(merged).sort(([a],[b]) => a.localeCompare(b));
-  const labels = sorted.map(([x]) => x);
-  const values = sorted.map(([,y]) => y);
-  const colors = values.map(v => v >= 10 ? '#f0883e' : v >= 7 ? '#3fb950' : v >= 4 ? '#388bfd' : '#1f4068');
-
-  freqChart.data.labels = labels;
-  freqChart.data.datasets[0].data = values;
-  freqChart.data.datasets[0].backgroundColor = colors;
-  freqChart.options.scales.x.ticks.callback = function(val, idx) {
-    const [yr, mo] = labels[idx].split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[+mo-1]} '${yr.slice(2)}`;
-  };
-  freqChart.update();
+  const [bestMo, bestCnt] = Object.entries(monthly).sort(([,a],[,b]) => b - a)[0] || [];
+  if (bestMo) {
+    const [yr, mo] = bestMo.split('-');
+    document.getElementById('mostActiveVal').textContent = `${MONTHS_SHORT[+mo-1]} '${yr.slice(2)}`;
+    document.getElementById('mostActiveSub').textContent = `${bestCnt} sessions`;
+  }
 }
 
 async function loadWorkoutLog() {
-  const { data, error } = await _sbClient
-    .from('sessions')
-    .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup, created_at)')
-    .order('date', { ascending: false })
-    .order('created_at', { referencedTable: 'sets', ascending: true })
-    .limit(500);
-
-  if (error || !data) { console.error('Sessions load error:', error); return; }
-
-  _logSessions = data;
-  updateFreqChart(data);
+  const PAGE = 1000;
+  let all = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data: page, error } = await _sbClient
+      .from('sessions')
+      .select('id, date, type, notes, sets(exercise, weight, reps, sets_count, is_warmup, created_at)')
+      .order('date', { ascending: false })
+      .order('created_at', { referencedTable: 'sets', ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) { console.error('Sessions load error:', error); break; }
+    if (!page || !page.length) break;
+    all = all.concat(page);
+    if (page.length < PAGE) break;
+  }
+  _logSessions = all;
+  updateFreqChart(all);
   renderHeatmap();
 }
 
 // ─── ACTIVITY HEATMAP (monthly calendar) ──────────────────────────────────────
 
-const RU_MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-let hmYear, hmMonth;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let hmYear;
 
 function hmDayDetails(iso) {
   const parts = [];
@@ -1011,55 +1019,82 @@ function hmDayDetails(iso) {
       if (!cur || (st.weight || 0) > cur.w) byEx[st.exercise] = { w: st.weight, r: st.reps };
     });
     const exLines = Object.entries(byEx).map(([ex, v]) => {
-      const w = v.w != null ? v.w + 'кг' : '';
+      const w = v.w != null ? v.w + 'kg' : '';
       const r = v.r ? '×' + v.r : '';
       return `${ex} ${w}${r}`.trim();
     });
-    parts.push(`<b>🏋️ ${s.type || 'силовая'}</b><br>` + (exLines.join('<br>') || '—'));
+    parts.push(`<b>🏋️ ${s.type || 'strength'}</b><br>` + (exLines.join('<br>') || '—'));
   }
-  // бег этого дня
   const rd = (GARMIN.run_distance || []).find(p => p.x === iso);
   if (rd) {
     const pace = (GARMIN.run_pace || []).find(p => p.x === iso);
     const hr   = (GARMIN.run_hr || []).find(p => p.x === iso);
-    let line = `<b>🏃 Бег ${rd.y} км</b>`;
-    if (pace) line += ` · ${paceLabel(pace.y)}/км`;
+    let line = `<b>🏃 Run ${rd.y} km</b>`;
+    if (pace) line += ` · ${paceLabel(pace.y)}/km`;
     if (hr)   line += ` · ${hr.y} bpm`;
     parts.push(line);
   }
-  return parts.length ? parts.join('<hr class="hm-sep">') : '<span style="color:#6e7681;">нет активности</span>';
+  return parts.length ? parts.join('<hr class="hm-sep">') : '<span style="color:#6e7681;">no activity</span>';
 }
 
 function renderHeatmap() {
   const el = document.getElementById('heatmap');
   if (!el) return;
-  if (hmYear === undefined) { const t = new Date(); hmYear = t.getFullYear(); hmMonth = t.getMonth(); }
+  if (hmYear === undefined) { hmYear = new Date().getFullYear(); }
 
-  document.getElementById('hmTitle').textContent = `${RU_MONTHS[hmMonth]} ${hmYear}`;
-  const strength = new Set(_logSessions.map(s => s.date));
-  const runs     = new Set((GARMIN.run_distance || []).map(p => p.x));
+  document.getElementById('hmTitle').textContent = String(hmYear);
+  const strength = new Set(_logSessions.map(s => s.date.slice(0, 10)));
+  const runs     = new Set((GARMIN.run_distance || []).map(p => p.x.slice(0, 10)));
 
-  const wd = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-  let html = wd.map(d => `<div class="hm-wd">${d}</div>`).join('');
+  // First Monday on or before Jan 1; last Sunday on or after Dec 31
+  const jan1  = new Date(hmYear, 0, 1);
+  const dec31 = new Date(hmYear, 11, 31);
+  const startDow  = (jan1.getDay()  + 6) % 7;
+  const startDate = new Date(jan1);
+  startDate.setDate(startDate.getDate() - startDow);
+  const endDow  = (dec31.getDay() + 6) % 7;
+  const endDate = new Date(dec31);
+  endDate.setDate(endDate.getDate() + (6 - endDow));
 
-  const first = new Date(hmYear, hmMonth, 1);
-  const lead  = (first.getDay() + 6) % 7;             // Пн = 0
-  for (let i = 0; i < lead; i++) html += '<div class="hm-day empty"></div>';
+  const cells = [];
+  const weekMonths = [];
+  const cur = new Date(startDate);
+  let dayInWeek = 0;
+  let lastLabeledMonth = -1;
 
-  const days = new Date(hmYear, hmMonth + 1, 0).getDate();
-  for (let dd = 1; dd <= days; dd++) {
-    const iso = `${hmYear}-${String(hmMonth+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
-    const s = strength.has(iso), r = runs.has(iso);
-    const cls = s && r ? 'b' : s ? 's' : r ? 'r' : '';
-    html += `<div class="hm-day ${cls}" data-iso="${iso}">${dd}</div>`;
+  while (cur <= endDate) {
+    if (dayInWeek === 0) {
+      const m = cur.getMonth(), y = cur.getFullYear();
+      weekMonths.push(y === hmYear && m !== lastLabeledMonth
+        ? (lastLabeledMonth = m, MONTHS_SHORT[m]) : '');
+    }
+    const iso = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+    if (cur.getFullYear() === hmYear) {
+      const s = strength.has(iso), r = runs.has(iso);
+      const cls = s && r ? 'b' : s ? 's' : r ? 'r' : '';
+      cells.push(`<div class="hm-cell ${cls}" data-iso="${iso}"></div>`);
+    } else {
+      cells.push(`<div class="hm-cell out"></div>`);
+    }
+    cur.setDate(cur.getDate() + 1);
+    dayInWeek = (dayInWeek + 1) % 7;
   }
-  el.innerHTML = html;
+
+  const monthRowHtml = weekMonths.map(l => `<div class="hm-ml">${l}</div>`).join('');
+  const wdLabels = ['Mo','','We','','Fr','',''];
+  const labelsHtml = wdLabels.map(l => `<span>${l}</span>`).join('');
+
+  el.innerHTML = `<div class="hm-gh-outer">
+    <div class="hm-wd-col">${labelsHtml}</div>
+    <div class="hm-gh-right">
+      <div class="hm-month-row">${monthRowHtml}</div>
+      <div class="hm-gh-grid">${cells.join('')}</div>
+    </div>
+  </div>`;
 }
 
 function hmShift(delta) {
-  hmMonth += delta;
-  if (hmMonth < 0)  { hmMonth = 11; hmYear--; }
-  if (hmMonth > 11) { hmMonth = 0;  hmYear++; }
+  hmYear += delta;
   renderHeatmap();
 }
 
@@ -1072,7 +1107,7 @@ function hmShift(delta) {
   if (next) next.addEventListener('click', () => hmShift(1));
   if (grid && tip) {
     grid.addEventListener('mouseover', e => {
-      const cell = e.target.closest('.hm-day[data-iso]');
+      const cell = e.target.closest('.hm-cell[data-iso]');
       if (!cell) return;
       tip.innerHTML = `<div class="hm-tip-date">${cell.dataset.iso}</div>` + hmDayDetails(cell.dataset.iso);
       tip.style.display = 'block';
@@ -1082,7 +1117,7 @@ function hmShift(delta) {
       tip.style.top  = (e.clientY + 14) + 'px';
     });
     grid.addEventListener('mouseout', e => {
-      if (e.target.closest('.hm-day')) tip.style.display = 'none';
+      if (e.target.closest('.hm-cell')) tip.style.display = 'none';
     });
   }
 })();
@@ -1150,7 +1185,7 @@ async function loadAdvice() {
   if (error || !data || !data.length) return;
   const a = data[0];
   document.getElementById('adviceText').textContent = a.text;
-  const meta = a.based_on ? `На основе тренировки ${a.based_on}` : '';
+  const meta = a.based_on ? `Based on session ${a.based_on}` : '';
   document.getElementById('adviceMeta').textContent = meta;
   document.getElementById('adviceCard').style.display = 'block';
 }
