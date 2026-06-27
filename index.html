@@ -255,6 +255,9 @@
   .heatmap-legend { display: flex; gap: 14px; font-size: 11px; color: #8b949e; }
   .heatmap-legend span { display: flex; align-items: center; gap: 5px; }
   .hm-box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+  .hr-zone-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #8b949e; margin: 4px 0 12px; }
+  .hr-zone-legend span { display: flex; align-items: center; gap: 5px; }
+  .hz-box { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
   .hm-strength { background: #f0883e; }
   .hm-run { background: #3fb950; }
   .hm-both { background: #58a6ff; }
@@ -383,6 +386,14 @@
     <button class="period-btn active" data-run-period="day">Daily</button>
     <button class="period-btn" data-run-period="week">Weekly</button>
     <button class="period-btn" data-run-period="month">Monthly</button>
+  </div>
+
+  <div class="hr-zone-legend" id="hrZoneLegend" style="display:none">
+    <span><i class="hz-box" style="background:#8b949e"></i> Z1 Warmup 99–117</span>
+    <span><i class="hz-box" style="background:#58a6ff"></i> Z2 Light 118–137</span>
+    <span><i class="hz-box" style="background:#3fb950"></i> Z3 Aerobic 138–157</span>
+    <span><i class="hz-box" style="background:#f0883e"></i> Z4 Threshold 158–176</span>
+    <span><i class="hz-box" style="background:#f85149"></i> Z5 Max 177+</span>
   </div>
 
   <div class="chart-container">
@@ -526,6 +537,18 @@ function runBarLabel(iso, period) {
     : `${MONTHS_SHORT[m-1]} ${d}`;
 }
 
+// HR training zones (absolute bpm, matching the user's Garmin zones)
+const HR_ZONES = [
+  { name: 'Z1', label: 'Warmup',    upper: 117,      color: '#8b949e' },
+  { name: 'Z2', label: 'Light',     upper: 137,      color: '#58a6ff' },
+  { name: 'Z3', label: 'Aerobic',   upper: 157,      color: '#3fb950' },
+  { name: 'Z4', label: 'Threshold', upper: 176,      color: '#f0883e' },
+  { name: 'Z5', label: 'Max',       upper: Infinity, color: '#f85149' },
+];
+function hrZone(hr) {
+  return HR_ZONES.find(z => hr <= z.upper) || HR_ZONES[HR_ZONES.length - 1];
+}
+
 function buildRunStats(exKey) {
   const data = GARMIN[exKey] || [];
   if (!data.length) return '<span class="ex-stat">Loading…</span>';
@@ -574,26 +597,45 @@ function switchExercise(exKey) {
 
   if (!exChart) return;
 
-  const isBar = exKey === 'run_distance';
+  const isZoneBar = exKey === 'run_hr';            // zone-coloured HR bars
+  const isBar = exKey === 'run_distance' || isZoneBar;
   const ptColors = isRun ? data.map(() => color) : buildPointColors(exKey, data);
+  const barColors = isZoneBar ? data.map(d => hrZone(d.y).color) : hexAlpha(color, 0.7);
   const ds = exChart.data.datasets[0];
   ds.type = isBar ? 'bar' : 'line';
   exChart.data.labels = isBar ? data.map(d => runBarLabel(d.x, currentRunPeriod)) : [];
   ds.data = isBar ? data.map(d => d.y) : data;
-  ds.borderColor = color;
-  ds.backgroundColor = isBar ? hexAlpha(color, 0.7) : hexAlpha(color, 0.08);
+  ds.borderColor = isBar ? barColors : color;
+  ds.backgroundColor = isBar ? barColors : hexAlpha(color, 0.08);
+  ds.borderWidth = isBar ? 0 : 2;
   ds.pointBackgroundColor = ptColors;
   ds.pointBorderColor = ptColors;
   ds.borderRadius = isBar ? 3 : 0;
   ds.maxBarThickness = 48;
+  ds.order = 2;
   ds.label = isRun ? meta.name : ex.name;
+
+  // Overlay trend line on top of the zone bars (Run HR only)
+  const overlay = exChart.data.datasets[1];
+  if (isZoneBar) {
+    overlay.hidden = false;
+    overlay.data = data.map(d => d.y);
+    overlay.borderColor = '#e6edf3';
+  } else {
+    overlay.hidden = true;
+    overlay.data = [];
+  }
+
+  // Zone legend visible only for Run HR
+  const zoneLegend = document.getElementById('hrZoneLegend');
+  if (zoneLegend) zoneLegend.style.display = isZoneBar ? 'flex' : 'none';
 
   if (data.length) {
     const ys = data.map(d => d.y);
     const lo = Math.min(...ys), hi = Math.max(...ys);
     const roundUnit = exKey === 'run_pace' ? 0.5 : isRun ? 1 : 5;
     const pad = Math.max(roundUnit, (hi - lo) * 0.15);
-    exChart.options.scales.y.min = isBar ? 0 : Math.floor((lo - pad) / roundUnit) * roundUnit;
+    exChart.options.scales.y.min = exKey === 'run_distance' ? 0 : Math.floor((lo - pad) / roundUnit) * roundUnit;
     exChart.options.scales.y.max = Math.ceil((hi + pad) / roundUnit) * roundUnit;
   } else {
     exChart.options.scales.y.min = isRun ? meta.yMin : ex.yMin;
@@ -639,8 +681,22 @@ exChart = new Chart(document.getElementById('exChart'), {
       pointRadius: 5,
       pointHoverRadius: 7,
       borderWidth: 2,
+      order: 2,
       pointBackgroundColor: buildPointColors('dumbbell_bench', initEx.data),
       pointBorderColor: buildPointColors('dumbbell_bench', initEx.data),
+    }, {
+      // Overlay trend line for the Run HR zone bars (hidden otherwise)
+      label: 'trend',
+      type: 'line',
+      data: [],
+      hidden: true,
+      borderColor: '#e6edf3',
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.3,
+      pointRadius: 2,
+      borderWidth: 2,
+      order: 1,
     }],
   },
   options: {
@@ -649,11 +705,16 @@ exChart = new Chart(document.getElementById('exChart'), {
     plugins: {
       legend: { display: false },
       tooltip: {
+        filter: item => item.datasetIndex === 0,
         callbacks: {
           label: ctx => {
             if (currentEx && currentEx.startsWith('run_')) {
               const m = GARMIN_META[currentEx];
               if (m && m.fmt === 'pace') return paceLabel(ctx.parsed.y) + '/km';
+              if (currentEx === 'run_hr') {
+                const z = hrZone(ctx.parsed.y);
+                return `${ctx.parsed.y} bpm · ${z.name} ${z.label}`;
+              }
               return `${ctx.parsed.y} ${m ? m.unit : ''}`;
             }
             const ex = EXERCISES[currentEx];
@@ -904,7 +965,7 @@ function switchGarmin(key) {
 
 function switchPeriod(period) {
   currentPeriod = period;
-  document.querySelectorAll('.period-btn').forEach(b => {
+  document.querySelectorAll('#periodButtons .period-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.period === period);
   });
   if (garminChart) applyGarminChart();
@@ -965,7 +1026,7 @@ garminChart = new Chart(document.getElementById('garminChart'), {
 document.querySelectorAll('.garmin-btn').forEach(b => {
   b.addEventListener('click', () => switchGarmin(b.dataset.gm));
 });
-document.querySelectorAll('.period-btn').forEach(b => {
+document.querySelectorAll('#periodButtons .period-btn').forEach(b => {
   b.addEventListener('click', () => switchPeriod(b.dataset.period));
 });
 const _garminLoading = document.getElementById('garminLoading');
