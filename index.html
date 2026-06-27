@@ -578,8 +578,6 @@ function switchExercise(exKey) {
   const ptColors = isRun ? data.map(() => color) : buildPointColors(exKey, data);
   const ds = exChart.data.datasets[0];
   ds.type = isBar ? 'bar' : 'line';
-  // Bars use an evenly-spaced category axis (a time axis makes sparse runs hair-thin)
-  exChart.options.scales.x.type = isBar ? 'category' : 'time';
   exChart.data.labels = isBar ? data.map(d => runBarLabel(d.x, currentRunPeriod)) : [];
   ds.data = isBar ? data.map(d => d.y) : data;
   ds.borderColor = color;
@@ -601,16 +599,27 @@ function switchExercise(exKey) {
     exChart.options.scales.y.min = isRun ? meta.yMin : ex.yMin;
     exChart.options.scales.y.max = isRun ? meta.yMax : ex.yMax;
   }
-  // X-axis time unit
-  const xUnit = isRun
-    ? (currentRunPeriod === 'month' ? 'month' : currentRunPeriod === 'week' ? 'week' : 'day')
-    : 'month';
-  exChart.options.scales.x.time.unit = xUnit;
-  exChart.options.scales.x.time.displayFormats = xUnit === 'day'
-    ? { day: 'MMM d' }
-    : xUnit === 'week'
-    ? { week: 'MMM d' }
-    : { month: 'MMM yy' };
+  // Rebuild the whole x scale so Chart.js fully re-inits when the type changes
+  if (isBar) {
+    exChart.options.scales.x = {
+      type: 'category',
+      grid: { color: '#21262d' },
+      ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 },
+    };
+  } else {
+    const xUnit = isRun
+      ? (currentRunPeriod === 'month' ? 'month' : currentRunPeriod === 'week' ? 'week' : 'day')
+      : 'month';
+    exChart.options.scales.x = {
+      type: 'time',
+      time: {
+        unit: xUnit,
+        tooltipFormat: 'dd.MM.yyyy',
+        displayFormats: xUnit === 'day' ? { day: 'MMM d' } : xUnit === 'week' ? { week: 'MMM d' } : { month: 'MMM yy' },
+      },
+      grid: { color: '#21262d' },
+    };
+  }
 
   exChart.update();
 }
